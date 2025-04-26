@@ -1,0 +1,1 @@
+# nifi-impala-hive-extensions
