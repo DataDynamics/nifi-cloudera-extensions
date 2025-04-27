@@ -1,0 +1,44 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<project name="deploy" default="scp" basedir=".">
+
+    <property name="localNiFiPath" value="${user.home}/Projects/nifi/nifi-1.26.0/extensions"/>
+
+    <property name="target" value="${basedir}/nifi-cloudera-processors-nar/target"/>
+    <property name="username" value="fharenheit"/>
+    <property name="password" value="*******"/>
+    <property name="host" value="192.168.0.170"/>
+    <property name="targetDir" value="/home/fharenheit/nifi-1.26.0/extensions"/>
+
+    <!--
+        scp task는 jsch-0.1.2 이후 버전이 필요하며 https://repo1.maven.org/maven2/com/jcraft/jsch/0.1.55/jsch-0.1.55.jar 을 다운로드하여
+        IntelliJ IDEA의 경우 <USER_HOME>/.ant/lib 디렉토리에 복사하도록 합니다.
+        Apache Ant의 경우 <ANT_HOME>/lib 디렉토리에 복사하도록 합니다.
+    -->
+
+    <target name="scp">
+        <scp todir="${username}:${password}@${host}:${targetDir}" trust="true" verbose="true">
+            <fileset dir="${target}">
+                <include name="*.nar"/>
+            </fileset>
+        </scp>
+    </target>
+
+    <!--
+        Local NiFi의 extension directory에 .nar 파일을 복사한다.
+    -->
+    <target name="local-copy">
+        <fileset id="dist.contents" dir="${localNiFiPath}" includes="*"/>
+        <property name="prop.dist.contents" refid="dist.contents"/>
+
+        <echo message="Local NiFi Extension Path : ${localNiFiPath}"/>
+
+        <copy todir="${localNiFiPath}" verbose="true" overwrite="true">
+            <fileset dir="${target}">
+                <include name="*.nar"/>
+            </fileset>
+        </copy>
+
+        <echo message="NAR Files : ${prop.dist.contents}"/>
+    </target>
+
+</project>
