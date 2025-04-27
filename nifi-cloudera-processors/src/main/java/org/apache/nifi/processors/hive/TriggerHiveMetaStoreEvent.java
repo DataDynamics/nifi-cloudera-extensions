@@ -35,7 +35,6 @@ import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.nifi.security.krb.KerberosLoginException;
 import org.apache.nifi.security.krb.KerberosUser;
 import org.apache.nifi.util.hive.AuthenticationFailedException;
-import org.apache.nifi.util.hive.HiveConfigurator;
 import org.apache.nifi.util.hive.ValidationResources;
 import org.apache.thrift.TException;
 

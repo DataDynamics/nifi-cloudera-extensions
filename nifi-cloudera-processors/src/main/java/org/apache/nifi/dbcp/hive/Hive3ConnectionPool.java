@@ -27,13 +27,13 @@ import org.apache.nifi.kerberos.KerberosCredentialsService;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
+import org.apache.nifi.processors.hive.HiveConfigurator;
 import org.apache.nifi.reporting.InitializationException;
 import org.apache.nifi.security.krb.KerberosKeytabUser;
 import org.apache.nifi.security.krb.KerberosLoginException;
 import org.apache.nifi.security.krb.KerberosPasswordUser;
 import org.apache.nifi.security.krb.KerberosUser;
 import org.apache.nifi.util.hive.AuthenticationFailedException;
-import org.apache.nifi.util.hive.HiveConfigurator;
 import org.apache.nifi.util.hive.ValidationResources;
 
 import java.io.File;
@@ -270,7 +270,6 @@ public class Hive3ConnectionPool extends AbstractControllerService implements Hi
                 resolvedPrincipal = explicitPrincipal;
                 resolvedKeytab = explicitKeytab;
             }
-
 
             final String configFiles = validationContext.getProperty(HIVE_CONFIGURATION_RESOURCES).evaluateAttributeExpressions().getValue();
             problems.addAll(hiveConfigurator.validate(configFiles, resolvedPrincipal, resolvedKeytab, explicitPassword, validationResourceHolder, getLogger()));

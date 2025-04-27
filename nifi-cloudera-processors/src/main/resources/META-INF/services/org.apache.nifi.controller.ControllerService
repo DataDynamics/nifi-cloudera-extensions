@@ -1,1 +1,2 @@
 org.apache.nifi.dbcp.hive.Hive3ConnectionPool
+org.apache.nifi.dbcp.cloudera.ClouderaHiveConnectionPool

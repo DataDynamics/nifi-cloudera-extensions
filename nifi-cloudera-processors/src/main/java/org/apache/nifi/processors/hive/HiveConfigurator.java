@@ -1,4 +1,4 @@
-package org.apache.nifi.util.hive;
+package org.apache.nifi.processors.hive;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -9,15 +9,40 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.hadoop.KerberosProperties;
 import org.apache.nifi.hadoop.SecurityUtil;
+import org.apache.nifi.kerberos.KerberosUserService;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.security.krb.KerberosUser;
+import org.apache.nifi.util.hive.AuthenticationFailedException;
+import org.apache.nifi.util.hive.ValidationResources;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HiveConfigurator {
+
+    // for Cloudera
+    public Collection<ValidationResult> validate(String configFiles, KerberosUserService kerberosUserService, AtomicReference<ValidationResources> validationResourceHolder, ComponentLog log) {
+        List<ValidationResult> results = new ArrayList<>();
+        Configuration hiveConfig = getConfigurationForValidation(validationResourceHolder, configFiles, log);
+        boolean isSecurityEnabled = SecurityUtil.isSecurityEnabled(hiveConfig);
+        if (isSecurityEnabled) {
+            if (kerberosUserService == null) {
+                results.add((new ValidationResult.Builder()).valid(false).subject(getClass().getSimpleName())
+                        .explanation("Kerberos User Service must be provided when using a secure configuration").build());
+            } else {
+                results.add((new ValidationResult.Builder()).valid(true).build());
+            }
+        } else if (kerberosUserService != null) {
+            log.warn("Configuration does not have security enabled, Kerberos User Service will be ignored");
+        } else {
+            results.add((new ValidationResult.Builder()).valid(true).build());
+        }
+        return results;
+    }
+
 
     public Collection<ValidationResult> validate(String configFiles, String principal, String keyTab, String password,
                                                  AtomicReference<ValidationResources> validationResourceHolder, ComponentLog log) {

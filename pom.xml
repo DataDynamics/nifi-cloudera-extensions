@@ -20,6 +20,7 @@
     </properties>
 
     <modules>
+        <module>nifi-cloudera-hive-service-api</module>
         <module>nifi-cloudera-processors</module>
         <module>nifi-cloudera-processors-nar</module>
     </modules>
