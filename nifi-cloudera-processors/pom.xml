@@ -47,7 +47,7 @@
     <dependencies>
         <dependency>
             <groupId>io.datadynamics.nifi</groupId>
-            <artifactId>nifi-cloudera-hive-service-api</artifactId>
+            <artifactId>nifi-cloudera-hive-services-api</artifactId>
             <version>1.0.0</version>
         </dependency>
 
@@ -407,12 +407,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>opencloudengine</id>
-            <name>OpenCloudEngine</name>
-            <url>http://nexus.opencloudengine.org/repository/maven-public/</url>
-        </repository>
-    </repositories>
 </project>

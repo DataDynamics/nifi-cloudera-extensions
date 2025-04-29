@@ -9,7 +9,7 @@ import org.apache.nifi.annotation.documentation.SeeAlso;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.dbcp.hive.Hive3DBCPService;
+import io.datadynamics.nifi.dbcp.hive.ClouderaHiveDBCPService;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.ProcessContext;
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 @DeprecationNotice(reason = "Support for Apache Hive 3 is deprecated for removal in Apache NiFi 2.0")
 @SeeAlso(SelectHive3QL.class)
 @InputRequirement(Requirement.INPUT_REQUIRED)
-@Tags({"sql", "hive", "put", "database", "update", "insert"})
+@Tags({"cloudera", "sql", "hive", "put", "database", "update", "insert"})
 @CapabilityDescription("Executes a HiveQL DDL/DML command (UPDATE, INSERT, e.g.). The content of an incoming FlowFile is expected to be the HiveQL command "
         + "to execute. The HiveQL command may use the ? to escape parameters. In this case, the parameters to use must exist as FlowFile attributes "
         + "with the naming convention hiveql.args.N.type and hiveql.args.N.value, where N is a positive integer. The hiveql.args.N.type is expected to be "
@@ -115,7 +115,7 @@ public class PutHive3QL extends AbstractHive3QLProcessor {
     private Put<FunctionContext, Connection> process;
     private ExceptionHandler<FunctionContext> exceptionHandler;
     private final InitConnection<FunctionContext, Connection> initConnection = (context, session, fc, ffs) -> {
-        final Hive3DBCPService dbcpService = context.getProperty(HIVE_DBCP_SERVICE).asControllerService(Hive3DBCPService.class);
+        final ClouderaHiveDBCPService dbcpService = context.getProperty(HIVE_DBCP_SERVICE).asControllerService(ClouderaHiveDBCPService.class);
         final Connection connection = dbcpService.getConnection();
         fc.connectionUrl = dbcpService.getConnectionURL();
         return connection;

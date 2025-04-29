@@ -6,7 +6,7 @@ import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.DeprecationNotice;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.*;
-import org.apache.nifi.dbcp.hive.Hive3DBCPService;
+import io.datadynamics.nifi.dbcp.hive.ClouderaHiveDBCPService;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
@@ -33,7 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @DeprecationNotice(reason = "Support for Apache Hive 3 is deprecated for removal in Apache NiFi 2.0")
-@Tags({"hive", "metadata", "jdbc", "database", "table"})
+@Tags({"cloudera", "hive", "metadata", "jdbc", "database", "table"})
 @CapabilityDescription("This processor uses a Hive JDBC connection and incoming records to generate any Hive 3.0+ table changes needed to support the incoming records.")
 @ReadsAttributes({
         @ReadsAttribute(attribute = "hive.table.management.strategy", description = "This attribute is read if the 'Table Management Strategy' property is configured "
@@ -103,7 +103,7 @@ public class UpdateHive3Table extends AbstractProcessor {
             .displayName("Hive Database Connection Pooling Service")
             .description("The Hive Controller Service that is used to obtain connection(s) to the Hive database")
             .required(true)
-            .identifiesControllerService(Hive3DBCPService.class)
+            .identifiesControllerService(ClouderaHiveDBCPService.class)
             .build();
     static final PropertyDescriptor TABLE_NAME = new PropertyDescriptor.Builder()
             .name("hive3-table-name")
@@ -351,7 +351,7 @@ public class UpdateHive3Table extends AbstractProcessor {
             }
 
             final String storageFormat = context.getProperty(TABLE_STORAGE_FORMAT).getValue();
-            final Hive3DBCPService dbcpService = context.getProperty(HIVE_DBCP_SERVICE).asControllerService(Hive3DBCPService.class);
+            final ClouderaHiveDBCPService dbcpService = context.getProperty(HIVE_DBCP_SERVICE).asControllerService(ClouderaHiveDBCPService.class);
             try (final Connection connection = dbcpService.getConnection()) {
 
                 final Map<String, String> attributes = new HashMap<>(flowFile.getAttributes());

@@ -34,7 +34,7 @@ import java.util.List;
 
 @DeprecationNotice(reason = "Support for Apache Hive 3 is deprecated for removal in Apache NiFi 2.0")
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
-@Tags({"put", "ORC", "hadoop", "HDFS", "filesystem", "restricted", "record"})
+@Tags({"cloudera", "put", "ORC", "hadoop", "HDFS", "filesystem", "restricted", "record"})
 @CapabilityDescription("Reads records from an incoming FlowFile using the provided Record Reader, and writes those records " +
         "to a ORC file in the location/filesystem specified in the configuration.")
 @ReadsAttribute(attribute = "filename", description = "The name of the file to write comes from the value of this attribute.")

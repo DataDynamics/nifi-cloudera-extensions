@@ -13,7 +13,7 @@ import org.apache.nifi.annotation.documentation.DeprecationNotice;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.dbcp.hive.Hive3DBCPService;
+import io.datadynamics.nifi.dbcp.hive.ClouderaHiveDBCPService;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
@@ -40,7 +40,7 @@ import static org.apache.nifi.util.hive.HiveJdbcCommon.*;
 @DeprecationNotice(reason = "Support for Apache Hive 3 is deprecated for removal in Apache NiFi 2.0")
 @EventDriven
 @InputRequirement(Requirement.INPUT_ALLOWED)
-@Tags({"hive", "sql", "select", "jdbc", "query", "database"})
+@Tags({"cloudera", "hive", "sql", "select", "jdbc", "query", "database"})
 @CapabilityDescription("Execute provided HiveQL SELECT query against a Hive database connection. Query result will be converted to Avro or CSV format."
         + " Streaming is used so arbitrarily large result sets are supported. This processor can be scheduled to run on "
         + "a timer, or cron expression, using the standard scheduling methods, or it can be triggered by an incoming FlowFile. "
@@ -280,7 +280,7 @@ public class SelectHive3QL extends AbstractHive3QLProcessor {
         }
 
         final ComponentLog logger = getLogger();
-        final Hive3DBCPService dbcpService = context.getProperty(HIVE_DBCP_SERVICE).asControllerService(Hive3DBCPService.class);
+        final ClouderaHiveDBCPService dbcpService = context.getProperty(HIVE_DBCP_SERVICE).asControllerService(ClouderaHiveDBCPService.class);
         final Charset charset = Charset.forName(context.getProperty(CHARSET).getValue());
 
         List<String> preQueries = getQueries(context.getProperty(HIVEQL_PRE_QUERY).evaluateAttributeExpressions(fileToProcess).getValue());

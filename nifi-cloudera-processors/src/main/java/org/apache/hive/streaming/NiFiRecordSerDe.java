@@ -104,7 +104,7 @@ public class NiFiRecordSerDe extends AbstractSerDe {
     @Override
     public Object deserialize(Writable writable) throws SerDeException {
         ObjectWritable t = (ObjectWritable) writable;
-        Record record = (Record) t.get();
+        org.apache.nifi.serialization.record.Record record = (org.apache.nifi.serialization.record.Record) t.get();
 
         List<Object> result = deserialize(record, schema);
 
@@ -113,7 +113,7 @@ public class NiFiRecordSerDe extends AbstractSerDe {
         return result;
     }
 
-    private List<Object> deserialize(Record record, StructTypeInfo schema) throws SerDeException {
+    private List<Object> deserialize(org.apache.nifi.serialization.record.Record record, StructTypeInfo schema) throws SerDeException {
         List<Object> result = new ArrayList<>(Collections.nCopies(schema.getAllStructFieldNames().size(), null));
 
         try {
@@ -238,7 +238,7 @@ public class NiFiRecordSerDe extends AbstractSerDe {
                 val = convertedMap;
                 break;
             case STRUCT:
-                Record nestedRecord = (Record) fieldValue;
+                org.apache.nifi.serialization.record.Record nestedRecord = (org.apache.nifi.serialization.record.Record) fieldValue;
                 StructTypeInfo s = (StructTypeInfo) fieldTypeInfo;
                 val = deserialize(nestedRecord, s);
                 break;

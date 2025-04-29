@@ -1,6 +1,7 @@
 package org.apache.nifi.dbcp.hive;
 
 import com.cloudera.hive.jdbc.HS2Driver;
+import io.datadynamics.nifi.dbcp.hive.HiveDBCPService;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -55,9 +56,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @DeprecationNotice(reason = "Support for Apache Hive 3 is deprecated for removal in Apache NiFi 2.0")
 @RequiresInstanceClassLoading
-@Tags({"hive", "dbcp", "jdbc", "database", "connection", "pooling", "store"})
+@Tags({"cloudera", "hive", "dbcp", "jdbc", "database", "connection", "pooling", "store"})
 @CapabilityDescription("Provides Database Connection Pooling Service for Apache Hive 3.x. Connections can be asked from pool and returned after usage.")
-public class Hive3ConnectionPool extends AbstractControllerService implements Hive3DBCPService {
+public class Hive3ConnectionPool extends AbstractControllerService implements HiveDBCPService {
     static final PropertyDescriptor DATABASE_URL = new PropertyDescriptor.Builder()
             .name("hive-db-connect-url")
             .displayName("Database Connection URL")

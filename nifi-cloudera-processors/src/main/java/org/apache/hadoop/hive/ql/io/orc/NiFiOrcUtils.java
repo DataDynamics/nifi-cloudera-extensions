@@ -159,8 +159,8 @@ public class NiFiOrcUtils {
             if (o instanceof List) {
                 return o;
             }
-            if (o instanceof Record) {
-                Record record = (Record) o;
+            if (o instanceof org.apache.nifi.serialization.record.Record) {
+                org.apache.nifi.serialization.record.Record record = (org.apache.nifi.serialization.record.Record) o;
                 TypeInfo recordSchema = NiFiOrcUtils.getOrcSchema(record.getSchema(), hiveFieldNames);
                 List<RecordField> recordFields = record.getSchema().getFields();
                 if (recordFields != null) {

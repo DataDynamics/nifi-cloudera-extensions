@@ -100,7 +100,7 @@ import java.util.regex.Pattern;
 @EventDriven
 @SupportsBatching
 @InputRequirement(Requirement.INPUT_REQUIRED)
-@Tags({"command execution", "command", "stream", "execute", "kerberos"})
+@Tags({"cloudera", "command execution", "command", "stream", "execute", "kerberos"})
 @CapabilityDescription("The ExecuteStreamCommand processor provides a flexible way to integrate external commands and scripts into NiFi data flows."
         + " ExecuteStreamCommand can pass the incoming FlowFile's content to the command that it executes similarly how piping works.")
 @SupportsSensitiveDynamicProperties
@@ -124,7 +124,7 @@ import java.util.regex.Pattern;
                         explanation = "Provides operator the ability to execute arbitrary code assuming all permissions that NiFi has.")
         }
 )
-public class KerberosExecuteStreamCommand extends AbstractProcessor {
+public class PrePostExecuteStreamCommand extends AbstractProcessor {
 
     public static final Relationship ORIGINAL_RELATIONSHIP = new Relationship.Builder()
             .name("original")
@@ -195,36 +195,23 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
-    static final PropertyDescriptor KERBEROS_KEYTAB_PATH = new PropertyDescriptor.Builder()
-            .name("Kerberos Keytab File Path")
-            .description("Kerberos Keytab File Path")
+
+    static final PropertyDescriptor PRE_COMMAND = new PropertyDescriptor.Builder()
+            .name("Pre-Command")
+            .description("Command Path 및 Command Arguments의 실행 전에 실행할 커맨드")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
             .required(false)
             .build();
-    static final PropertyDescriptor KERBEROS_PRINCIPAL = new PropertyDescriptor.Builder()
-            .name("Kerberos Principal")
-            .description("Kerberos Principal")
+
+    static final PropertyDescriptor POST_COMMAND = new PropertyDescriptor.Builder()
+            .name("Post-Command")
+            .description("Command Path 및 Command Arguments의 실행 후에 실행할 커맨드")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
             .required(false)
             .build();
-    static final PropertyDescriptor KERBEROS_KRB5_PATH = new PropertyDescriptor.Builder()
-            .name("Kerberos krb5.conf Path")
-            .description("Kerberos krb5.conf Path")
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.FILE_EXISTS_VALIDATOR)
-            .defaultValue("/etc/krb5.conf")
-            .required(false)
-            .build();
-    static final PropertyDescriptor KERBEROS_TICKET_CACHE_PATH = new PropertyDescriptor.Builder()
-            .name("Kerberos Ticket Cache Path")
-            .description("Kerberos Ticket Cache Path")
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
-            .defaultValue("/tmp/krb5cc_nifi_$(hostname)")
-            .required(false)
-            .build();
+
     private final static Set<Relationship> OUTPUT_STREAM_RELATIONSHIP_SET;
     private final static Set<Relationship> ATTRIBUTE_RELATIONSHIP_SET;
     private static final Pattern COMMAND_ARGUMENT_PATTERN = Pattern.compile("command\\.argument\\.(?<commandIndex>[0-9]+)$");
@@ -244,7 +231,7 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
             .addValidator((subject, input, context) -> {
                 ValidationResult result = new ValidationResult.Builder()
                         .subject(subject).valid(true).input(input).build();
-                List<String> args = ArgumentUtils.splitArgs(input, context.getProperty(KerberosExecuteStreamCommand.ARG_DELIMITER).getValue().charAt(0));
+                List<String> args = ArgumentUtils.splitArgs(input, context.getProperty(PrePostExecuteStreamCommand.ARG_DELIMITER).getValue().charAt(0));
                 for (String arg : args) {
                     ValidationResult valResult = ATTRIBUTE_EXPRESSION_LANGUAGE_VALIDATOR.validate(subject, arg, context);
                     if (!valResult.isValid()) {
@@ -259,10 +246,8 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
 
     static {
         List<PropertyDescriptor> props = new ArrayList<>();
-        props.add(KERBEROS_KEYTAB_PATH);
-        props.add(KERBEROS_PRINCIPAL);
-        props.add(KERBEROS_KRB5_PATH);
-        props.add(KERBEROS_TICKET_CACHE_PATH);
+        props.add(PRE_COMMAND);
+        props.add(POST_COMMAND);
         props.add(WORKING_DIR);
         props.add(WORKING_DIR);
         props.add(EXECUTION_COMMAND);
@@ -380,16 +365,9 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
         /// KERBEROS START
         ////////////////////////////////////
 
-        final String kerberosKrb5Path = context.getProperty(KERBEROS_KRB5_PATH).evaluateAttributeExpressions(inputFlowFile).getValue();
-        final String kerberosTicketCachePath = context.getProperty(KERBEROS_TICKET_CACHE_PATH).evaluateAttributeExpressions(inputFlowFile).getValue();
-        final String kerberosKeytabPath = context.getProperty(KERBEROS_KEYTAB_PATH).evaluateAttributeExpressions(inputFlowFile).getValue();
-        final String kerberosPrincipal = context.getProperty(KERBEROS_PRINCIPAL).evaluateAttributeExpressions(inputFlowFile).getValue();
-        final String krb5 = "export KRB5_CONFIG=" + kerberosKrb5Path;
-        final String cache = "export KRB5CCNAME=FILE:" + kerberosTicketCachePath;
-        final String kinit = String.format("kinit -kt %s %s >/dev/null 2>&1 \\\n" +
-                "  || { echo \"kinit failed\" >&2; exit 1; }", kerberosKeytabPath, kerberosPrincipal);
-        final String kdestroy = "kdestroy >/dev/null 2>&1 \\\n" +
-                "  || { echo \"kdestroy failed\" >&2; exit 1; }";
+        final String preCommand = context.getProperty(PRE_COMMAND).evaluateAttributeExpressions(inputFlowFile).getValue();
+        final String postCommand = context.getProperty(POST_COMMAND).evaluateAttributeExpressions(inputFlowFile).getValue();
+
         final File shellFilename = new File(workingDir, String.format("%s.sh", UUID.randomUUID()));
 
         ////////////////////////////////////
@@ -457,11 +435,13 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
         }
 
         List<String> commandStack = new ArrayList<>();
-        commandStack.add(krb5);
-        commandStack.add(cache);
-        commandStack.add(kinit);
+        if (StringUtils.isNotBlank(preCommand)) {
+            commandStack.add(preCommand);
+        }
         commandStack.add(Joiner.on(" ").join(args));
-        commandStack.add(kdestroy);
+        if (StringUtils.isNotBlank(postCommand)) {
+            commandStack.add(postCommand);
+        }
 
         logger.info("Executing command: \n{}", Joiner.on("\n").join(commandStack));
 

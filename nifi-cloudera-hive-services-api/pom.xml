@@ -9,7 +9,7 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>nifi-cloudera-hive-service-api</artifactId>
+    <artifactId>nifi-cloudera-hive-services-api</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 

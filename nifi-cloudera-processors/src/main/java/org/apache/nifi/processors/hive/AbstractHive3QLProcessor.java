@@ -5,7 +5,7 @@ import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.dbcp.hive.Hive3DBCPService;
+import io.datadynamics.nifi.dbcp.hive.ClouderaHiveDBCPService;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.AbstractSessionFactoryProcessor;
@@ -31,7 +31,7 @@ public abstract class AbstractHive3QLProcessor extends AbstractSessionFactoryPro
             .displayName("Hive Database Connection Pooling Service")
             .description("The Hive Controller Service that is used to obtain connection(s) to the Hive database")
             .required(true)
-            .identifiesControllerService(Hive3DBCPService.class)
+            .identifiesControllerService(ClouderaHiveDBCPService.class)
             .build();
     public static final PropertyDescriptor CHARSET = new PropertyDescriptor.Builder()
             .name("hive3-charset")

@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @DeprecationNotice(reason = "Support for Apache Hive 3 is deprecated for removal in Apache NiFi 2.0")
-@Tags({"hive", "metastore", "notification", "insert", "delete", "partition", "event"})
+@Tags({"cloudera", "hive", "metastore", "notification", "insert", "delete", "partition", "event"})
 @CapabilityDescription("The processor is capable to trigger different type of events in the HiveMetaStore and generate notifications. " +
         "The metastore action to be executed is determined from the incoming path and event type attributes. " +
         "The supported event type values are 'put' in case of data insertion or 'delete' in case of data removal. " +

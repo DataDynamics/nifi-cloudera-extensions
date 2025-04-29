@@ -42,7 +42,7 @@ public class ORCHDFSRecordWriter implements HDFSRecordWriter {
     }
 
     @Override
-    public void write(final Record record) throws IOException {
+    public void write(final org.apache.nifi.serialization.record.Record record) throws IOException {
         if (recordFields != null) {
             for (int i = 0; i < numRecordFields; i++) {
                 final RecordField field = recordFields.get(i);
@@ -69,7 +69,7 @@ public class ORCHDFSRecordWriter implements HDFSRecordWriter {
     public WriteResult write(final RecordSet recordSet) throws IOException {
         int recordCount = 0;
 
-        Record record;
+        org.apache.nifi.serialization.record.Record record;
         while ((record = recordSet.next()) != null) {
             write(record);
             recordCount++;

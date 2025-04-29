@@ -20,7 +20,7 @@ import org.apache.nifi.controller.AbstractControllerService;
 import org.apache.nifi.controller.ConfigurationContext;
 import org.apache.nifi.controller.ControllerServiceInitializationContext;
 import org.apache.nifi.dbcp.DBCPValidator;
-import org.apache.nifi.dbcp.hive.ClouderaHiveDBCPService;
+import io.datadynamics.nifi.dbcp.hive.ClouderaHiveDBCPService;
 import org.apache.nifi.processors.hive.HiveConfigurator;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.hadoop.SecurityUtil;
@@ -46,9 +46,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RequiresInstanceClassLoading
-@Tags({"hive", "dbcp", "jdbc", "database", "connection", "pooling", "store"})
+@Tags({"cloudera", "hive", "dbcp", "jdbc", "database", "connection", "pooling", "store"})
 @CapabilityDescription("Provides Database Connection Pooling Service for Apache Hive 3.x. Connections can be asked from pool and returned after usage.")
-public class ClouderaHiveConnectionPool extends AbstractControllerService implements ClouderaHiveDBCPService {
+public class ClouderaHive3ConnectionPool extends AbstractControllerService implements ClouderaHiveDBCPService {
     private static final String DEFAULT_MIN_IDLE = "0";
 
     private static final String DEFAULT_MAX_IDLE = "8";
@@ -65,7 +65,6 @@ public class ClouderaHiveConnectionPool extends AbstractControllerService implem
             .name("hive-db-connect-url")
             .displayName("Database Connection URL")
             .description("A database connection URL used to connect to a database. May contain database system name, host, port, database name and some parameters. The exact syntax of a database connection URL is specified by the Hive documentation. For example, the server principal is often included as a connection parameter when connecting to a secure Hive server.")
-
             .defaultValue(null)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .required(true)
@@ -138,8 +137,7 @@ public class ClouderaHiveConnectionPool extends AbstractControllerService implem
             .displayName("Minimum Idle Connections")
             .name("dbcp-min-idle-conns")
             .description("The minimum number of connections that can remain idle in the pool, without extra ones being created, or zero to create none.")
-
-            .defaultValue("0")
+            .defaultValue(DEFAULT_MIN_IDLE)
             .required(false)
             .addValidator(StandardValidators.NON_NEGATIVE_INTEGER_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
@@ -149,8 +147,7 @@ public class ClouderaHiveConnectionPool extends AbstractControllerService implem
             .displayName("Max Idle Connections")
             .name("dbcp-max-idle-conns")
             .description("The maximum number of connections that can remain idle in the pool, without extra ones being released, or negative for no limit.")
-
-            .defaultValue("8")
+            .defaultValue(DEFAULT_MAX_IDLE)
             .required(false)
             .addValidator(StandardValidators.INTEGER_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
@@ -160,8 +157,7 @@ public class ClouderaHiveConnectionPool extends AbstractControllerService implem
             .displayName("Max Connection Lifetime")
             .name("dbcp-max-conn-lifetime")
             .description("The maximum lifetime in milliseconds of a connection. After this time is exceeded the connection will fail the next activation, passivation or validation test. A value of zero or less means the connection has an infinite lifetime.")
-
-            .defaultValue("-1")
+            .defaultValue(DEFAULT_MAX_CONN_LIFETIME)
             .required(false)
             .addValidator(DBCPValidator.CUSTOM_TIME_PERIOD_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
@@ -182,7 +178,7 @@ public class ClouderaHiveConnectionPool extends AbstractControllerService implem
             .displayName("Minimum Evictable Idle Time")
             .name("dbcp-min-evictable-idle-time")
             .description("The minimum amount of time a connection may sit idle in the pool before it is eligible for eviction.")
-            .defaultValue("30 mins")
+            .defaultValue(DEFAULT_MIN_EVICTABLE_IDLE_TIME)
             .required(false)
             .addValidator(DBCPValidator.CUSTOM_TIME_PERIOD_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
@@ -359,7 +355,7 @@ public class ClouderaHiveConnectionPool extends AbstractControllerService implem
     }
 
     public String toString() {
-        return "ClouderaHiveConnectionPool[id=" + getIdentifier() + "]";
+        return "ClouderaHive3ConnectionPool[id=" + getIdentifier() + "]";
     }
 
     public String getConnectionURL() {
