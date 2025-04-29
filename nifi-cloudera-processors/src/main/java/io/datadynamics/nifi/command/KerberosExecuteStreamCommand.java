@@ -487,6 +487,10 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
         try {
             process = builder.start(); // Run Command
         } catch (IOException e) {
+            if (shellFilename.exists()) {
+                shellFilename.delete();
+            }
+
             try {
                 if (!errorOut.delete()) {
                     logger.warn("Unable to delete file: " + errorOut.getAbsolutePath());
@@ -562,6 +566,9 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
             // could not close Process related streams
             logger.warn("Problem terminating Process {}", process, e);
         } finally {
+            if (shellFilename.exists()) {
+                shellFilename.delete();
+            }
             FileUtils.deleteQuietly(errorOut);
             process.destroy(); // last ditch effort to clean up that process.
         }
