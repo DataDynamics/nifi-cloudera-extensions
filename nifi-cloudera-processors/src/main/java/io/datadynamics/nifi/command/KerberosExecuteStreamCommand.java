@@ -209,6 +209,22 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
             .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
             .required(false)
             .build();
+    static final PropertyDescriptor KERBEROS_KRB5_PATH = new PropertyDescriptor.Builder()
+            .name("Kerberos krb5.conf Path")
+            .description("Kerberos krb5.conf Path")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .addValidator(StandardValidators.FILE_EXISTS_VALIDATOR)
+            .defaultValue("/etc/krb5.conf")
+            .required(false)
+            .build();
+    static final PropertyDescriptor KERBEROS_TICKET_CACHE_PATH = new PropertyDescriptor.Builder()
+            .name("Kerberos Ticket Cache Path")
+            .description("Kerberos Ticket Cache Path")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .defaultValue("/tmp/krb5cc_nifi_$(hostname)")
+            .required(false)
+            .build();
     private final static Set<Relationship> OUTPUT_STREAM_RELATIONSHIP_SET;
     private final static Set<Relationship> ATTRIBUTE_RELATIONSHIP_SET;
     private static final Pattern COMMAND_ARGUMENT_PATTERN = Pattern.compile("command\\.argument\\.(?<commandIndex>[0-9]+)$");
@@ -245,6 +261,8 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
         List<PropertyDescriptor> props = new ArrayList<>();
         props.add(KERBEROS_KEYTAB_PATH);
         props.add(KERBEROS_PRINCIPAL);
+        props.add(KERBEROS_KRB5_PATH);
+        props.add(KERBEROS_TICKET_CACHE_PATH);
         props.add(WORKING_DIR);
         props.add(WORKING_DIR);
         props.add(EXECUTION_COMMAND);
@@ -362,12 +380,16 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
         /// KERBEROS START
         ////////////////////////////////////
 
+        final String kerberosKrb5Path = context.getProperty(KERBEROS_KRB5_PATH).evaluateAttributeExpressions(inputFlowFile).getValue();
+        final String kerberosTicketCachePath = context.getProperty(KERBEROS_TICKET_CACHE_PATH).evaluateAttributeExpressions(inputFlowFile).getValue();
         final String kerberosKeytabPath = context.getProperty(KERBEROS_KEYTAB_PATH).evaluateAttributeExpressions(inputFlowFile).getValue();
         final String kerberosPrincipal = context.getProperty(KERBEROS_PRINCIPAL).evaluateAttributeExpressions(inputFlowFile).getValue();
+        final String krb5 = "export KRB5_CONFIG=" + kerberosKrb5Path;
+        final String cache = "export KRB5CCNAME=FILE:" + kerberosTicketCachePath;
         final String kinit = String.format("kinit -kt %s %s >/dev/null 2>&1 \\\n" +
                 "  || { echo \"kinit failed\" >&2; exit 1; }", kerberosKeytabPath, kerberosPrincipal);
         final String kdestroy = "kdestroy >/dev/null 2>&1 \\\n" +
-                "  || { echo \"kinit failed\" >&2; exit 1; }";
+                "  || { echo \"kdestroy failed\" >&2; exit 1; }";
         final File shellFilename = new File(workingDir, String.format("%s.sh", UUID.randomUUID()));
 
         ////////////////////////////////////
@@ -435,6 +457,8 @@ public class KerberosExecuteStreamCommand extends AbstractProcessor {
         }
 
         List<String> commandStack = new ArrayList<>();
+        commandStack.add(krb5);
+        commandStack.add(cache);
         commandStack.add(kinit);
         commandStack.add(Joiner.on(" ").join(args));
         commandStack.add(kdestroy);
