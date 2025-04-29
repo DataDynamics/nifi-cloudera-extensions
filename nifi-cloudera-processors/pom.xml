@@ -35,6 +35,12 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -404,9 +410,9 @@
 
     <repositories>
         <repository>
-            <id>opencloudengine-release</id>
-            <name>OpenCloudEngine Release</name>
-            <url>http://nexus.opencloudengine.org/repository/maven-releases/</url>
+            <id>opencloudengine</id>
+            <name>OpenCloudEngine</name>
+            <url>http://nexus.opencloudengine.org/repository/maven-public/</url>
         </repository>
     </repositories>
 </project>
