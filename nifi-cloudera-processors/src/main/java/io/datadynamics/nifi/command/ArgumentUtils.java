@@ -38,7 +38,7 @@ public class ArgumentUtils {
                 continue;
             }
 
-/*
+/* Processor의 인자에 "" 으로 감싸면 이 코드때문에 ""이 날라간다.
             if (c == QUOTE) {
                 inQuotes = !inQuotes;
                 continue;

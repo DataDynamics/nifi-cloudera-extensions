@@ -368,7 +368,14 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
         final String preCommand = context.getProperty(PRE_COMMAND).evaluateAttributeExpressions(inputFlowFile).getValue();
         final String postCommand = context.getProperty(POST_COMMAND).evaluateAttributeExpressions(inputFlowFile).getValue();
 
-        final File shellFilename = new File(workingDir, String.format("%s.sh", UUID.randomUUID()));
+        final File shellFilename;
+        try {
+            shellFilename = File.createTempFile("nifi", UUID.randomUUID().toString() + ".sh");
+        } catch (IOException e) {
+            logger.warn("Could not write shell script to temporary. Cause: {}", e.getMessage(), e);
+            session.rollback(true);
+            return;
+        }
 
         ////////////////////////////////////
         /// PRE-POST COMMAND END
@@ -442,11 +449,10 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
             commandStack.add(postCommand);
         }
 
-        logger.info("Executing command: \n{}", Joiner.on("\n").join(commandStack));
-
         try {
             IOUtils.write(Joiner.on("\n").join(commandStack), new FileOutputStream(shellFilename));
         } catch (IOException e) {
+            logger.warn("Could not write shell script to {}.  Command will not be executed", shellFilename.getAbsolutePath(), e);
             session.rollback(true);
             return;
         }
@@ -455,10 +461,11 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
         args.add("/bin/sh");
         args.add(shellFilename.getAbsolutePath());
 
+        logger.info("Executing and waiting for command: {}\n-----------------------------\n{}\n-----------------------------", Joiner.on(" ").join(args), Joiner.on("\n").join(commandStack));
+
         final ProcessBuilder builder = new ProcessBuilder();
 
         // Avoid logging arguments that could contain sensitive values
-        logger.debug("Executing and waiting for command: {}", executeCommand);
         File dir = null;
         if (!StringUtils.isBlank(workingDir)) {
             dir = new File(workingDir);
@@ -524,7 +531,7 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
             }
 
             int exitCode = callback.exitCode;
-            logger.info("Execution complete for command: {}.  Exited with code: {}", executeCommand, exitCode);
+            logger.info(String.format("Execution complete for command: %s.  Exited with code: %s\n-----------------------------\n%s\n-----------------------------", Joiner.on(" ").join(args), exitCode, Joiner.on("\n").join(commandStack)));
 
             Map<String, String> attributes = new HashMap<>();
 
@@ -549,6 +556,7 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
             }
 
             attributes.put("execution.status", Integer.toString(exitCode));
+            attributes.put("execution.script", Joiner.on("\n").join(commandStack));
             attributes.put("execution.command", executeCommand);
             attributes.put("execution.command.args", commandArguments);
             if (context.getProperty(MIME_TYPE).isSet() && !putToAttribute) {
