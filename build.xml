@@ -5,7 +5,7 @@
     <property name="remoteNiFiPath" value="/var/lib/nifi/extensions"/>
 
     <property name="target" value="${basedir}/nifi-cloudera-processors-nar/target"/>
-    <property name="username" value="fharenheit"/>
+    <property name="username" value="root"/>
     <property name="password" value="*******"/>
     <property name="host" value="192.168.0.170"/>
     <property name="targetDir" value="/home/fharenheit/nifi-1.26.0/extensions"/>
