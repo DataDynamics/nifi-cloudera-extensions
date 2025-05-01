@@ -362,7 +362,7 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
         final String workingDir = context.getProperty(WORKING_DIR).evaluateAttributeExpressions(inputFlowFile).getValue();
 
         ////////////////////////////////////
-        /// KERBEROS START
+        /// PRE-POST COMMAND START
         ////////////////////////////////////
 
         final String preCommand = context.getProperty(PRE_COMMAND).evaluateAttributeExpressions(inputFlowFile).getValue();
@@ -371,7 +371,7 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
         final File shellFilename = new File(workingDir, String.format("%s.sh", UUID.randomUUID()));
 
         ////////////////////////////////////
-        /// KERBEROS END
+        /// PRE-POST COMMAND END
         ////////////////////////////////////
 
         final String executeCommand = context.getProperty(EXECUTION_COMMAND).evaluateAttributeExpressions(inputFlowFile).getValue(); // Command for executing
@@ -381,8 +381,7 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
         if (!useDynamicPropertyArguments) {
             commandArguments = context.getProperty(EXECUTION_ARGUMENTS).evaluateAttributeExpressions(inputFlowFile).getValue();
             if (!StringUtils.isBlank(commandArguments)) {
-                args.addAll(ArgumentUtils
-                        .splitArgs(commandArguments, context.getProperty(ARG_DELIMITER).getValue().charAt(0)));
+                args.addAll(ArgumentUtils.splitArgs(commandArguments, context.getProperty(ARG_DELIMITER).getValue().charAt(0)));
             }
         } else {
             List<PropertyDescriptor> propertyDescriptors = new ArrayList<>();
@@ -483,6 +482,10 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
             errorOut = File.createTempFile("out", null);
             builder.redirectError(errorOut);
         } catch (IOException e) {
+            if (shellFilename.exists()) {
+                shellFilename.delete();
+            }
+
             logger.error("Could not create temporary file for error logging", e);
             throw new ProcessException(e);
         }
@@ -521,7 +524,7 @@ public class PrePostExecuteStreamCommand extends AbstractProcessor {
             }
 
             int exitCode = callback.exitCode;
-            logger.debug("Execution complete for command: {}.  Exited with code: {}", executeCommand, exitCode);
+            logger.info("Execution complete for command: {}.  Exited with code: {}", executeCommand, exitCode);
 
             Map<String, String> attributes = new HashMap<>();
 
