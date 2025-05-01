@@ -38,10 +38,12 @@ public class ArgumentUtils {
                 continue;
             }
 
+/*
             if (c == QUOTE) {
                 inQuotes = !inQuotes;
                 continue;
             }
+*/
 
             sb.append(c);
         }
