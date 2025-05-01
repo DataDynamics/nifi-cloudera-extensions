@@ -2,6 +2,7 @@
 <project name="deploy" default="scp" basedir=".">
 
     <property name="localNiFiPath" value="${user.home}/Projects/nifi/nifi-1.26.0/extensions"/>
+    <property name="remoteNiFiPath" value="/var/lib/nifi/extensions"/>
 
     <property name="target" value="${basedir}/nifi-cloudera-processors-nar/target"/>
     <property name="username" value="fharenheit"/>
