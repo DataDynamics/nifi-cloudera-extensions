@@ -33,7 +33,7 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "1");
+        out.assertAttributeEquals("parsecsv.record.count", "1");
         out.assertAttributeEquals("parsecsv.header.present", "false");
         out.assertAttributeEquals("parsecsv.line.delimiter", "@@\\n");
         out.assertAttributeEquals("parsecsv.column.delimiter", "^|");
@@ -55,7 +55,7 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "2");
+        out.assertAttributeEquals("parsecsv.record.count", "2");
         out.assertAttributeEquals("parsecsv.header.present", "false");
         out.assertAttributeEquals("parsecsv.line.delimiter", "@@\\n");
         out.assertAttributeEquals("parsecsv.column.delimiter", "^|");
@@ -75,7 +75,7 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "2");
+        out.assertAttributeEquals("parsecsv.record.count", "2");
         out.assertAttributeEquals("parsecsv.header.present", "true");
     }
 
@@ -91,7 +91,7 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "1");
+        out.assertAttributeEquals("parsecsv.record.count", "1");
     }
 
     @Test
@@ -107,7 +107,7 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "1");
+        out.assertAttributeEquals("parsecsv.record.count", "1");
     }
 
     @Test
@@ -122,7 +122,7 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "1");
+        out.assertAttributeEquals("parsecsv.record.count", "1");
     }
 
     @Test
@@ -137,6 +137,6 @@ public class MultilineCsvParserTest {
 
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("record.count", "1");
+        out.assertAttributeEquals("parsecsv.record.count", "1");
     }
 }

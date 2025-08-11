@@ -31,7 +31,7 @@ import java.util.*;
 @CapabilityDescription("Parses CSV-like files where both the line and column delimiters may be multi-character strings. " +
         "Optionally supports a header row and quoting (RFC4180-like: quote char escapes itself by doubling). Emits one FlowFile.")
 @WritesAttributes({
-        @WritesAttribute(attribute = "record.count", description = "Number of records parsed (excluding header)"),
+        @WritesAttribute(attribute = "parsecsv.record.count", description = "Number of records parsed (excluding header)"),
         @WritesAttribute(attribute = "parsecsv.header.present", description = "true if the first row was treated as header"),
         @WritesAttribute(attribute = "parsecsv.line.delimiter", description = "Effective line delimiter (after unescape)"),
         @WritesAttribute(attribute = "parsecsv.column.delimiter", description = "Effective column delimiter (after unescape)")
@@ -204,7 +204,7 @@ public class MultilineCsvParser extends AbstractProcessor {
             });
 
             final Map<String, String> attrs = new HashMap<>();
-            attrs.put("record.count", String.valueOf(recordCount[0]));
+            attrs.put("parsecsv.record.count", String.valueOf(recordCount[0]));
             attrs.put("parsecsv.header.present", String.valueOf(hasHeader));
             attrs.put("parsecsv.line.delimiter", printable(lineDelim));
             attrs.put("parsecsv.column.delimiter", printable(colDelim));
