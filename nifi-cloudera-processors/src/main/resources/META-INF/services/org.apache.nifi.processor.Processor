@@ -5,3 +5,4 @@ org.apache.nifi.processors.orc.PutORC
 org.apache.nifi.processors.hive.UpdateHive3Table
 org.apache.nifi.processors.hive.TriggerHiveMetaStoreEvent
 io.datadynamics.nifi.command.PrePostExecuteStreamCommand
+io.datadynamics.nifi.parser.MultilineCsvParser
