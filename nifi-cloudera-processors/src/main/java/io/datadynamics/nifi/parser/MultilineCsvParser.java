@@ -127,7 +127,6 @@ public class MultilineCsvParser extends AbstractProcessor {
 			.build();
 
 	// ---- ETC ----
-
 	public static final PropertyDescriptor COLUMN_COUNT = new PropertyDescriptor.Builder()
 			.name("컬럼 카운트")
 			.description("컬럼 카운트를 검증합니다.")
@@ -145,6 +144,15 @@ public class MultilineCsvParser extends AbstractProcessor {
 			.defaultValue("false")
 			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.BOOLEAN_VALIDATOR)
+			.build();
+
+	public static final PropertyDescriptor FIXED_SIZE_COLUMN = new PropertyDescriptor.Builder()
+			.name("컬럼의 크기가 고정 크기시 컬럼의 문자수")
+			.description("컬럼의 크기가 고정 크기로 되어 있는 컬럼의 경우 컬럼의 문자수를 검증합니다. 단 UTF로 가정하지 않고 Character의 개수를 검증하도록 합니다.")
+			.required(false)
+			.defaultValue("0")
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+			.addValidator(StandardValidators.INTEGER_VALIDATOR)
 			.build();
 
 	public static final PropertyDescriptor SKIP_EMPTY_LINE = new PropertyDescriptor.Builder()
@@ -185,6 +193,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 		descriptors.add(HAS_HEADER);
 		descriptors.add(COLUMN_COUNT);
 		descriptors.add(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN);
+		descriptors.add(FIXED_SIZE_COLUMN);
 		descriptors.add(SKIP_EMPTY_LINE);
 		descriptors.add(INPUT_CHARACTER_SET);
 		descriptors.add(OUTPUT_CHARACTER_SET);
@@ -223,6 +232,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 		final int columnCount = context.getProperty(COLUMN_COUNT).evaluateAttributeExpressions(ff).asInteger();
 		final boolean includeColumnSepAtLastColumn = context.getProperty(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN).evaluateAttributeExpressions(ff).asBoolean();
 		final boolean skipEmptyLine = context.getProperty(SKIP_EMPTY_LINE).evaluateAttributeExpressions(ff).asBoolean();
+		final int fixedSizeOfColumn = context.getProperty(FIXED_SIZE_COLUMN).evaluateAttributeExpressions(ff).asInteger();
 
 		final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
 		final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
@@ -268,7 +278,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 				try (OutputStreamWriter writer = new OutputStreamWriter(outStream, outCharset)) {
 					try (Reader base = new BufferedReader(new InputStreamReader(in, inCharset), 8192);
 					     Reader xform = new MultiDelimiterTranslatingReader(base, lineDelim, RECORD_SEP, colDelim, COLUMN_SEP)) {
-						settings.setProcessor(new ReplaceRowProcessor(lineDelim, colDelim, outLineDelim, outColDelim, writer, refinedLineDelimiter, rowCount, columnCount, includeColumnSepAtLastColumn));
+						settings.setProcessor(new ReplaceRowProcessor(lineDelim, colDelim, outLineDelim, outColDelim, writer, refinedLineDelimiter, rowCount, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn));
 						CsvParser parser = new CsvParser(settings);
 						parser.parse(xform);
 					}
