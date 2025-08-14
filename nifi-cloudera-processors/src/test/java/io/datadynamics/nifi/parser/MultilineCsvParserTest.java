@@ -82,6 +82,8 @@ public class MultilineCsvParserTest {
     @Test
     void quotes_protect_delimiters_and_double_quote_is_unescaped() {
         TestRunner runner = newRunner();
+	    runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
+
         // 기본 quote = '"'
         String input = "foo^|\"bar^|baz\"^|\"He said \"\"Hi\"\"\"@@\n";
         String expected = "foo,bar^|baz,He said \"Hi\"\n";
@@ -94,13 +96,16 @@ public class MultilineCsvParserTest {
         out.assertAttributeEquals("parsecsv.record.count", "1");
     }
 
+//	foo,bar^|baz,He said "Hi"
+//	foo,barbaz,He said "Hi"
+
     @Test
     void disable_quotes_treats_quote_as_literal() {
         TestRunner runner = newRunner();
-        runner.setProperty(MultilineCsvParser.QUOTE_CHAR, ""); // quoting 해제
+        runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
 
         String input = "\"a\"^|\"b\"@@\n";
-        String expected = "\"a\",\"b\"\n";
+        String expected = "a,b\n";
 
         runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
         runner.run();

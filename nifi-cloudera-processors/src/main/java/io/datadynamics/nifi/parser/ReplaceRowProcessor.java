@@ -7,18 +7,24 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static io.datadynamics.nifi.parser.MultilineCsvParser.COLUMN_SEP;
+
 public class ReplaceRowProcessor extends AbstractRowProcessor {
 
-	private final String lineSeparator;
-	private final String columnSeparator;
+	private final String inLineSep;
+	private final String inColSep;
+	private final String outLineSep;
+	private final String outColSep;
 	private final Writer writer;
 	private final String refinedLineDelimiter;
 	private final AtomicLong rowCount;
 	private final int columnCount;
 
-	public ReplaceRowProcessor(String lineSeparator, String columnSeparator, Writer writer, String refinedLineDelimiter, AtomicLong rowCount, int columnCount) {
-		this.lineSeparator = lineSeparator;
-		this.columnSeparator = columnSeparator;
+	public ReplaceRowProcessor(String inLineSep, String inColSep, String outLineSep, String outColSep, Writer writer, String refinedLineDelimiter, AtomicLong rowCount, int columnCount) {
+		this.inLineSep = inLineSep;
+		this.inColSep = inColSep;
+		this.outLineSep = outLineSep;
+		this.outColSep = outColSep;
 		this.writer = writer;
 		this.refinedLineDelimiter = refinedLineDelimiter;
 		this.rowCount = rowCount;
@@ -36,12 +42,12 @@ public class ReplaceRowProcessor extends AbstractRowProcessor {
 		rowCount.incrementAndGet();
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < rows.length; i++) {
-			sb.append(rows[i].replace("\r\n", " ").replace("\n", " "));
+			sb.append(rows[i].replace("\r\n", " ").replace("\n", " ").replace("" + COLUMN_SEP, inColSep));
 			if (i < rows.length - 1) {
-				sb.append(columnSeparator);
+				sb.append(outColSep);
 			}
 		}
-		sb.append(lineSeparator);
+		sb.append(outLineSep);
 		try {
 			String rowString = sb.toString();
 			writer.write(rowString);
