@@ -12,6 +12,7 @@ import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.ValidationContext;
 import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.components.Validator;
+import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.AbstractProcessor;
@@ -49,88 +50,107 @@ public class MultilineCsvParser extends AbstractProcessor {
 
 	// ---- Input Delimiters ----
 	public static final PropertyDescriptor LINE_DELIMITER = new PropertyDescriptor.Builder()
-			.name("Line Delimiter")
-			.description("Input line delimiter (multi-character). Supports escapes: \\n, \\r, \\t, \\\\, \\uXXXX.")
+			.name("입력 파일의 라인 구분자")
+			.description("입력 파일의 멀티 문자 기반의 라인 구분자. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
 			.required(true)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
 			.defaultValue("@@\\n")
 			.build();
 
 	public static final PropertyDescriptor COLUMN_DELIMITER = new PropertyDescriptor.Builder()
-			.name("Column Delimiter")
-			.description("Input column delimiter (multi-character). Supports escapes: \\n, \\r, \\t, \\\\, \\uXXXX.")
+			.name("입력 파일의 컬럼 구분자")
+			.description("입력 파일의 멀티 문자 기반의 컬럼 구분자. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
 			.required(true)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
 			.defaultValue("^|")
 			.build();
 
 	// ---- Quoting & Header ----
 	public static final PropertyDescriptor QUOTE_CHAR = new PropertyDescriptor.Builder()
-			.name("Quote Character")
-			.description("Optional quote character for fields. Leave empty for no quoting. " +
-					"If set (e.g. '\"'), inside quoted fields delimiters are ignored and the quote is escaped by doubling (\"\").")
+			.name("Quote 문자")
+			.description("옵션으로 사용하는 컬럼의 인용 문자. 빈값으로 놔두면 적용하지 않습니다. " +
+					"만약에 설정한다면 (e.g. '\"'), 인용 문자로 감싸있는 필드 내부의 구분자는 무시합니다. 중복으로 (\"\") 사용하면 이스케이프 처리합니다.")
 			.required(false)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(new SingleCharAfterUnescapeValidator())
 			.defaultValue("\"")
 			.build();
 
 	public static final PropertyDescriptor HAS_HEADER = new PropertyDescriptor.Builder()
-			.name("Has Header Row")
-			.description("Treat the first row as header and DO NOT output it.")
+			.name("헤더 존재 여부")
+			.description("첫번째 ROW를 헤더로 처리합니다. 이 옵션을 활성화 하면 첫번째 ROW는 출력하지 않습니다.")
 			.required(false)
 			.allowableValues("true", "false")
 			.defaultValue("false")
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.BOOLEAN_VALIDATOR)
 			.build();
 
 	// ---- Charsets ----
 	public static final PropertyDescriptor INPUT_CHARACTER_SET = new PropertyDescriptor.Builder()
-			.name("Input Character Set")
-			.description("Charset for decoding input bytes. Example: CP949 (a.k.a. MS949).")
+			.name("입력 파일을 문자셋")
+			.description("입력 파일을 디코딩시 사용할 문자셋. 예: CP949 (a.k.a. MS949).")
 			.required(true)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.CHARACTER_SET_VALIDATOR)
 			.defaultValue("CP949") // 기본: CP949
 			.build();
 
 	public static final PropertyDescriptor OUTPUT_CHARACTER_SET = new PropertyDescriptor.Builder()
-			.name("Output Character Set")
-			.description("Charset for encoding output text. Example: UTF-8.")
+			.name("출력 파일의 문자셋")
+			.description("출력 파일의 인코딩 문자셋을 지정합니다. 예: UTF-8.")
 			.required(true)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.CHARACTER_SET_VALIDATOR)
 			.defaultValue(StandardCharsets.UTF_8.name()) // 기본: UTF-8
 			.build();
 
 	// ---- Output Delimiters ----
 	public static final PropertyDescriptor OUTPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
-			.name("Output Line Delimiter")
-			.description("Output line delimiter (multi-character). Supports escapes: \\n, \\r, \\t, \\\\, \\uXXXX.")
+			.name("출력 파일을 라인 구분자")
+			.description("출력 파일을 멀티 문자 기반 라인 구분자를 지정합니다. 멀티 캐릭터를 지원합니다. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
 			.required(true)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
 			.defaultValue("\\n")
 			.build();
 
 	public static final PropertyDescriptor OUTPUT_COLUMN_DELIMITER = new PropertyDescriptor.Builder()
-			.name("Output Column Delimiter")
-			.description("Output column delimiter (multi-character). Supports escapes: \\n, \\r, \\t, \\\\, \\uXXXX.")
+			.name("출력 파일을 컬럼 구분자")
+			.description("출력 파일의 멀티 문자 기반 컬럼 구분자를 지정합니다.. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
 			.required(true)
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
 			.addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
 			.defaultValue(",")
+			.build();
+
+	// ---- ETC ----
+
+	public static final PropertyDescriptor COLUMN_COUNT = new PropertyDescriptor.Builder()
+			.name("컬럼 카운트")
+			.description("컬럼 카운트를 검증합니다.")
+			.required(false)
+			.defaultValue("0")
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+			.addValidator(StandardValidators.INTEGER_VALIDATOR)
 			.build();
 
 	// ---- Relationships ----
 	public static final Relationship REL_SUCCESS = new Relationship.Builder()
 			.name("success")
-			.description("Plain text output with configured output delimiters/charset.")
+			.description("성공시 변환한 FlowFile을 전달")
 			.build();
 
 	public static final Relationship REL_ORIGINAL = new Relationship.Builder()
 			.name("original")
-			.description("Original input FlowFile.")
+			.description("원본 입력 FlowFile을 전달")
 			.build();
 
 	public static final Relationship REL_FAILURE = new Relationship.Builder()
 			.name("failure")
-			.description("If parsing fails, the original FlowFile goes here.")
+			.description("파싱 실패시 원본 FlowFile을 전달")
 			.build();
 
 	private List<PropertyDescriptor> descriptors;
@@ -143,6 +163,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 		descriptors.add(COLUMN_DELIMITER);
 		descriptors.add(QUOTE_CHAR);
 		descriptors.add(HAS_HEADER);
+		descriptors.add(COLUMN_COUNT);
 		descriptors.add(INPUT_CHARACTER_SET);
 		descriptors.add(OUTPUT_CHARACTER_SET);
 		descriptors.add(OUTPUT_LINE_DELIMITER);
@@ -170,19 +191,20 @@ public class MultilineCsvParser extends AbstractProcessor {
 	public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
 		final ComponentLog log = getLogger();
 
-		FlowFile input = session.get();
-		if (input == null) return;
+		FlowFile ff = session.get();
+		if (ff == null) return;
 
-		final String lineDelimRaw = context.getProperty(LINE_DELIMITER).getValue();
-		final String colDelimRaw = context.getProperty(COLUMN_DELIMITER).getValue();
-		final String quoteRaw = context.getProperty(QUOTE_CHAR).getValue();
-		final boolean hasHeader = context.getProperty(HAS_HEADER).asBoolean();
+		final String lineDelimRaw = context.getProperty(LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+		final String colDelimRaw = context.getProperty(COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+		final String quoteRaw = context.getProperty(QUOTE_CHAR).evaluateAttributeExpressions(ff).getValue();
+		final boolean hasHeader = context.getProperty(HAS_HEADER).evaluateAttributeExpressions(ff).asBoolean();
+		final int columnCount = context.getProperty(COLUMN_COUNT).evaluateAttributeExpressions(ff).asInteger();
 
-		final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).getValue());
-		final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).getValue());
+		final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
+		final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
 
-		final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).getValue();
-		final String outColRaw = context.getProperty(OUTPUT_COLUMN_DELIMITER).getValue();
+		final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+		final String outColRaw = context.getProperty(OUTPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
 
 		final String lineDelim = unescape(lineDelimRaw);
 		final String colDelim = unescape(colDelimRaw);
@@ -194,12 +216,12 @@ public class MultilineCsvParser extends AbstractProcessor {
 		if (lineDelim.isEmpty() || colDelim.isEmpty() || outLineDelim.isEmpty() || outColDelim.isEmpty()) {
 			log.error("Delimiters must not be empty after unescape. inLine='{}' inCol='{}' outLine='{}' outCol='{}'",
 					new Object[]{lineDelim, colDelim, outLineDelim, outColDelim});
-			session.transfer(input, REL_FAILURE);
+			session.transfer(ff, REL_FAILURE);
 			return;
 		}
 
-		final AtomicLong count = new AtomicLong(0);
-		FlowFile out = session.create(input);
+		final AtomicLong rowCount = new AtomicLong(0);
+		FlowFile out = session.create(ff);
 
 		CsvParserSettings settings = new CsvParserSettings();
 		settings.setSkipEmptyLines(false);          // 빈 레코드도 유지 (필요 시 조절)
@@ -217,12 +239,12 @@ public class MultilineCsvParser extends AbstractProcessor {
 
 		String refinedLineDelimiter = lineDelim.replace("\r\n", "").replace("\n", "");
 
-		try (final InputStream in = session.read(input)) {
+		try (final InputStream in = session.read(ff)) {
 			out = session.write(out, outStream -> {
 				try (OutputStreamWriter writer = new OutputStreamWriter(outStream, outCharset)) {
 					try (Reader base = new BufferedReader(new InputStreamReader(in, inCharset), 8192);
 					     Reader xform = new MultiDelimiterTranslatingReader(base, lineDelim, RECORD_SEP, colDelim, COLUMN_SEP)) {
-						settings.setProcessor(new ReplaceRowProcessor(outLineDelim, outColDelim, writer, refinedLineDelimiter, count));
+						settings.setProcessor(new ReplaceRowProcessor(outLineDelim, outColDelim, writer, refinedLineDelimiter, rowCount, columnCount));
 						CsvParser parser = new CsvParser(settings);
 						parser.parse(xform);
 					}
@@ -234,7 +256,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 			});
 
 			final Map<String, String> attrs = new HashMap<>();
-			attrs.put("parsecsv.record.count", String.valueOf(count.get()));
+			attrs.put("parsecsv.record.count", String.valueOf(rowCount.get()));
 			attrs.put("parsecsv.header.present", String.valueOf(hasHeader));
 			attrs.put("parsecsv.line.delimiter", printable(lineDelim));
 			attrs.put("parsecsv.column.delimiter", printable(colDelim));
@@ -244,12 +266,12 @@ public class MultilineCsvParser extends AbstractProcessor {
 
 			out = session.putAllAttributes(out, attrs);
 			session.transfer(out, REL_SUCCESS);
-			session.transfer(input, REL_ORIGINAL);
+			session.transfer(ff, REL_ORIGINAL);
 		} catch (Exception e) {
 			log.error("Failed to parse CSV: {}", e.getMessage(), e);
 			session.remove(out);
-			input = session.putAttribute(input, "parsecsv.error", String.valueOf(e));
-			session.transfer(input, REL_FAILURE);
+			ff = session.putAttribute(ff, "parsecsv.error", String.valueOf(e));
+			session.transfer(ff, REL_FAILURE);
 		}
 	}
 
