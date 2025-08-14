@@ -19,8 +19,9 @@ public class ReplaceRowProcessor extends AbstractRowProcessor {
 	private final String refinedLineDelimiter;
 	private final AtomicLong rowCount;
 	private final int columnCount;
+	private final boolean includeColumnSepAtLastColumn;
 
-	public ReplaceRowProcessor(String inLineSep, String inColSep, String outLineSep, String outColSep, Writer writer, String refinedLineDelimiter, AtomicLong rowCount, int columnCount) {
+	public ReplaceRowProcessor(String inLineSep, String inColSep, String outLineSep, String outColSep, Writer writer, String refinedLineDelimiter, AtomicLong rowCount, int columnCount, boolean includeColumnSepAtLastColumn) {
 		this.inLineSep = inLineSep;
 		this.inColSep = inColSep;
 		this.outLineSep = outLineSep;
@@ -28,14 +29,19 @@ public class ReplaceRowProcessor extends AbstractRowProcessor {
 		this.writer = writer;
 		this.refinedLineDelimiter = refinedLineDelimiter;
 		this.rowCount = rowCount;
-		this.columnCount = columnCount;
+		this.includeColumnSepAtLastColumn = includeColumnSepAtLastColumn;
+		if (includeColumnSepAtLastColumn) {
+			this.columnCount = columnCount + 1;
+		} else {
+			this.columnCount = columnCount;
+		}
 	}
 
 	@Override
 	public void rowProcessed(String[] rows, ParsingContext context) {
 		if (columnCount > 0) {
 			if (columnCount != rows.length) {
-				throw new IllegalStateException(String.format("컬럼 개수가 일치하지 않습니다. 초기 컬럼 개수: %s, 현재 컬럼 개수: %s", columnCount, rows.length));
+				throw new IllegalStateException(String.format("컬럼 개수가 일치하지 않습니다. 초기 컬럼 개수: %s, 현재 컬럼 개수: %s", includeColumnSepAtLastColumn ? columnCount - 1 : columnCount, includeColumnSepAtLastColumn ? rows.length - 1 : rows.length));
 			}
 		}
 

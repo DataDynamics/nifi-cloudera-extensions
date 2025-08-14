@@ -137,6 +137,16 @@ public class MultilineCsvParser extends AbstractProcessor {
 			.addValidator(StandardValidators.INTEGER_VALIDATOR)
 			.build();
 
+	public static final PropertyDescriptor INCLUDE_COLUMN_SEP_AT_LAST_COLUMN = new PropertyDescriptor.Builder()
+			.name("마지막 컬럼에도 컬럼 구분자 존재 여부")
+			.description("CSV의 경우 마지막 컬럼 뒤에 컬럼 구분자가 없으나 이 옵션을 체크하면 컬럼 구분자로 간주하여, '컬럼 카운트'에서 1개를 빼서 검증합니다.")
+			.required(false)
+			.allowableValues("true", "false")
+			.defaultValue("false")
+			.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+			.addValidator(StandardValidators.BOOLEAN_VALIDATOR)
+			.build();
+
 	public static final PropertyDescriptor SKIP_EMPTY_LINE = new PropertyDescriptor.Builder()
 			.name("빈 라인 건너뛰기")
 			.description("파일을 로딩할 때 빈 라인은 처리하지 않고 SKIP합니다.")
@@ -174,6 +184,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 		descriptors.add(QUOTE_CHAR);
 		descriptors.add(HAS_HEADER);
 		descriptors.add(COLUMN_COUNT);
+		descriptors.add(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN);
 		descriptors.add(SKIP_EMPTY_LINE);
 		descriptors.add(INPUT_CHARACTER_SET);
 		descriptors.add(OUTPUT_CHARACTER_SET);
@@ -210,6 +221,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 		final String quoteRaw = context.getProperty(QUOTE_CHAR).evaluateAttributeExpressions(ff).getValue();
 		final boolean hasHeader = context.getProperty(HAS_HEADER).evaluateAttributeExpressions(ff).asBoolean();
 		final int columnCount = context.getProperty(COLUMN_COUNT).evaluateAttributeExpressions(ff).asInteger();
+		final boolean includeColumnSepAtLastColumn = context.getProperty(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN).evaluateAttributeExpressions(ff).asBoolean();
 		final boolean skipEmptyLine = context.getProperty(SKIP_EMPTY_LINE).evaluateAttributeExpressions(ff).asBoolean();
 
 		final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
@@ -256,7 +268,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 				try (OutputStreamWriter writer = new OutputStreamWriter(outStream, outCharset)) {
 					try (Reader base = new BufferedReader(new InputStreamReader(in, inCharset), 8192);
 					     Reader xform = new MultiDelimiterTranslatingReader(base, lineDelim, RECORD_SEP, colDelim, COLUMN_SEP)) {
-						settings.setProcessor(new ReplaceRowProcessor(lineDelim, colDelim, outLineDelim, outColDelim, writer, refinedLineDelimiter, rowCount, columnCount));
+						settings.setProcessor(new ReplaceRowProcessor(lineDelim, colDelim, outLineDelim, outColDelim, writer, refinedLineDelimiter, rowCount, columnCount, includeColumnSepAtLastColumn));
 						CsvParser parser = new CsvParser(settings);
 						parser.parse(xform);
 					}
