@@ -23,8 +23,8 @@ Cloudera CDP 배포판에는 Apache Hive JDBC Driver가 번들링 되어 있지 
 
   <mirrors>
     <mirror>
-      <id>OpenCloudEngine</id>
-      <name>Open Cloud Engine Repo</name>
+      <id>central</id>
+      <name>central</name>
       <url>http://nexus.opencloudengine.org/repository/maven-public/</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
