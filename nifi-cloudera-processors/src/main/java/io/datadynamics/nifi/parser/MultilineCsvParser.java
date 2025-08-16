@@ -33,13 +33,16 @@ import java.util.concurrent.atomic.AtomicLong;
 @SupportsBatching
 @InputRequirement(Requirement.INPUT_REQUIRED)
 @Tags({"cloudera", "csv", "parse", "delimiter", "multi-character"})
-@CapabilityDescription("Parses CSV-like files where both the line and column delimiters may be multi-character strings. " +
-        "Optionally supports a header row and quoting (RFC4180-like: quote char escapes itself by doubling). Emits one FlowFile.")
+@CapabilityDescription("라인과 컬럼 구분자가 모두 다문자 문자열이면서 2바이트 이상인 CSV 파일을 파싱합니다. " +
+        "선택적으로 헤더 행과 Quote을 지원하며(RFC4180 유사: 따옴표 문자는 두 번 연속으로 사용하여 이스케이프), 하나의 FlowFile을 출력합니다.")
 @WritesAttributes({
-        @WritesAttribute(attribute = "parsecsv.record.count", description = "Number of records parsed (excluding header)"),
-        @WritesAttribute(attribute = "parsecsv.header.present", description = "true if the first row was treated as header"),
-        @WritesAttribute(attribute = "parsecsv.line.delimiter", description = "Effective line delimiter (after unescape)"),
-        @WritesAttribute(attribute = "parsecsv.column.delimiter", description = "Effective column delimiter (after unescape)")
+        @WritesAttribute(attribute = "parsecsv.record.count", description = "파싱한 레코드 수(헤더 제외)"),
+        @WritesAttribute(attribute = "parsecsv.header.present", description = "첫 번째 행을 헤더로 처리했다면 true"),
+        @WritesAttribute(attribute = "parsecsv.input.line.delimiter", description = "입력 라인 구분자(이스케이프 해제 후)"),
+        @WritesAttribute(attribute = "parsecsv.input.column.delimiter", description = "입력 컬럼 구분자(이스케이프 해제 후)"),
+        @WritesAttribute(attribute = "parsecsv.output.line.delimiter", description = "출력 라인 구분자(이스케이프 해제 후)"),
+        @WritesAttribute(attribute = "parsecsv.output.column.delimiter", description = "출력 컬럼 구분자(이스케이프 해제 후)"),
+        @WritesAttribute(attribute = "mime.type", description = "MIME Type")
 })
 public class MultilineCsvParser extends AbstractProcessor {
 
@@ -109,7 +112,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 
     // ---- Output Delimiters ----
     public static final PropertyDescriptor OUTPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
-            .name("출력 파일을 라인 구분자")
+            .name("출력 파일의 라인 구분자")
             .description("출력 파일을 멀티 문자 기반 라인 구분자를 지정합니다. 멀티 캐릭터를 지원합니다. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
             .required(true)
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
@@ -118,8 +121,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             .build();
 
     public static final PropertyDescriptor OUTPUT_COLUMN_DELIMITER = new PropertyDescriptor.Builder()
-            .name("출력 파일을 컬럼 구분자")
-            .description("출력 파일의 멀티 문자 기반 컬럼 구분자를 지정합니다.. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
+            .name("출력 파일의 컬럼 구분자")
+            .description("출력 파일의 멀티 문자 기반 컬럼 구분자를 지정합니다. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
             .required(true)
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
@@ -129,7 +132,8 @@ public class MultilineCsvParser extends AbstractProcessor {
     // ---- ETC ----
     public static final PropertyDescriptor COLUMN_COUNT = new PropertyDescriptor.Builder()
             .name("컬럼 카운트")
-            .description("컬럼 카운트를 검증합니다.")
+            .description("컬럼 카운트를 검증합니다. 이 값을 0보다 큰 값을 지정하면 CSV 파싱후 컬럼의 개수를 검증합니다. " +
+                    "지정한 개수와 같지 않은 경우 더이상 처리하지 않습니다.")
             .required(false)
             .defaultValue("0")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
@@ -138,7 +142,8 @@ public class MultilineCsvParser extends AbstractProcessor {
 
     public static final PropertyDescriptor INCLUDE_COLUMN_SEP_AT_LAST_COLUMN = new PropertyDescriptor.Builder()
             .name("마지막 컬럼에도 컬럼 구분자 존재 여부")
-            .description("CSV의 경우 마지막 컬럼 뒤에 컬럼 구분자가 없으나 이 옵션을 체크하면 컬럼 구분자로 간주하여, '컬럼 카운트'에서 1개를 빼서 검증합니다.")
+            .description("CSV의 경우 마지막 컬럼 뒤에 컬럼 구분자가 없으나 이 옵션을 체크하면 컬럼 구분자가 포함된 것으로 간주하여, " +
+                    "'컬럼 카운트'에서 설정한 값에서 1개를 빼서 검증합니다.")
             .required(false)
             .allowableValues("true", "false")
             .defaultValue("false")
@@ -148,7 +153,8 @@ public class MultilineCsvParser extends AbstractProcessor {
 
     public static final PropertyDescriptor FIXED_SIZE_COLUMN = new PropertyDescriptor.Builder()
             .name("컬럼의 크기가 고정 크기시 컬럼의 문자수")
-            .description("컬럼의 크기가 고정 크기로 되어 있는 컬럼의 경우 컬럼의 문자수를 검증합니다. 단 UTF로 가정하지 않고 Character의 개수를 검증하도록 합니다.")
+            .description("컬럼의 크기가 고정 크기로 되어 있는 컬럼의 경우 컬럼의 문자수를 검증합니다. " +
+                    "단, UTF로 가정하지 않고 Character의 개수를 검증하도록 합니다.")
             .required(false)
             .defaultValue("0")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
@@ -157,7 +163,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 
     public static final PropertyDescriptor SKIP_EMPTY_LINE = new PropertyDescriptor.Builder()
             .name("빈 라인 건너뛰기")
-            .description("파일을 로딩할 때 빈 라인은 처리하지 않고 SKIP합니다.")
+            .description("빈 라인은 처리하지 않고 SKIP합니다.")
             .required(false)
             .allowableValues("true", "false")
             .defaultValue("false")
@@ -226,6 +232,7 @@ public class MultilineCsvParser extends AbstractProcessor {
         FlowFile ff = session.get();
         if (ff == null) return;
 
+        // 사용자가 입력한 파라미터 값들
         final String lineDelimRaw = context.getProperty(LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String colDelimRaw = context.getProperty(COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String quoteRaw = context.getProperty(QUOTE_CHAR).evaluateAttributeExpressions(ff).getValue();
@@ -234,13 +241,12 @@ public class MultilineCsvParser extends AbstractProcessor {
         final boolean includeColumnSepAtLastColumn = context.getProperty(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN).evaluateAttributeExpressions(ff).asBoolean();
         final boolean skipEmptyLine = context.getProperty(SKIP_EMPTY_LINE).evaluateAttributeExpressions(ff).asBoolean();
         final int fixedSizeOfColumn = context.getProperty(FIXED_SIZE_COLUMN).evaluateAttributeExpressions(ff).asInteger();
-
         final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
         final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
-
         final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String outColRaw = context.getProperty(OUTPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
 
+        // 입력한 값들에 대한 escape를 처리합니다.
         final String lineDelim = unescape(lineDelimRaw);
         final String colDelim = unescape(colDelimRaw);
         final Character quoteChar = (quoteRaw == null || quoteRaw.isEmpty()) ? null : unescape(quoteRaw).charAt(0);
@@ -296,8 +302,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             final Map<String, String> attrs = new HashMap<>();
             attrs.put("parsecsv.record.count", String.valueOf(rowCounter.get()));
             attrs.put("parsecsv.header.present", String.valueOf(hasHeader));
-            attrs.put("parsecsv.line.delimiter", printable(lineDelim));
-            attrs.put("parsecsv.column.delimiter", printable(colDelim));
+            attrs.put("parsecsv.input.line.delimiter", printable(lineDelim));
+            attrs.put("parsecsv.input.column.delimiter", printable(colDelim));
             attrs.put("parsecsv.output.line.delimiter", printable(outLineDelim));
             attrs.put("parsecsv.output.column.delimiter", printable(outColDelim));
             attrs.put("mime.type", "text/plain; charset=" + outCharset.name());
