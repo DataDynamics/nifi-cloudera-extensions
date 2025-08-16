@@ -271,14 +271,12 @@ public class MultilineCsvParser extends AbstractProcessor {
 		format.setLineSeparator(String.valueOf(RECORD_SEP));        // 레코드 구분자(단일문자)
 		format.setDelimiter(COLUMN_SEP);                            // 컬럼 구분자(단일문자)
 
-		String refinedLineDelimiter = lineDelim.replace("\r\n", "").replace("\n", "");
-
 		try (final InputStream in = session.read(ff)) {
 			out = session.write(out, outStream -> {
 				try (OutputStreamWriter writer = new OutputStreamWriter(outStream, outCharset)) {
 					try (Reader base = new BufferedReader(new InputStreamReader(in, inCharset), 8192);
 					     Reader xform = new MultiDelimiterTranslatingReader(base, lineDelim, RECORD_SEP, colDelim, COLUMN_SEP)) {
-						settings.setProcessor(new ReplaceRowProcessor(lineDelim, colDelim, outLineDelim, outColDelim, writer, refinedLineDelimiter, rowCount, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn));
+						settings.setProcessor(new ReplaceRowProcessor(colDelim, outLineDelim, outColDelim, writer, rowCount, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn));
 						CsvParser parser = new CsvParser(settings);
 						parser.parse(xform);
 					}

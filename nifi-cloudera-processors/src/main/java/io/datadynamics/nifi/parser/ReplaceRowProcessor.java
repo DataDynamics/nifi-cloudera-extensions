@@ -11,31 +11,26 @@ import static io.datadynamics.nifi.parser.MultilineCsvParser.COLUMN_SEP;
 
 public class ReplaceRowProcessor extends AbstractRowProcessor {
 
-	private final String inLineSep;
 	private final String inColSep;
 	private final String outLineSep;
 	private final String outColSep;
 	private final Writer writer;
-	private final String refinedLineDelimiter;
 	private final AtomicLong rowCount;
 	private final int columnCount;
 	private final boolean includeColumnSepAtLastColumn;
 	private final int fixedSizeOfColumn;
 
-	public ReplaceRowProcessor(String inLineSep, String inColSep,
+	public ReplaceRowProcessor(String inColSep,
 	                           String outLineSep, String outColSep,
 	                           Writer writer,
-	                           String refinedLineDelimiter,
 	                           AtomicLong rowCount,
 	                           int columnCount,
 	                           boolean includeColumnSepAtLastColumn,
 	                           int fixedSizeOfColumn) {
-		this.inLineSep = inLineSep;
 		this.inColSep = inColSep;
 		this.outLineSep = outLineSep;
 		this.outColSep = outColSep;
 		this.writer = writer;
-		this.refinedLineDelimiter = refinedLineDelimiter;
 		this.rowCount = rowCount;
 		this.includeColumnSepAtLastColumn = includeColumnSepAtLastColumn;
 		this.fixedSizeOfColumn = fixedSizeOfColumn;
