@@ -279,6 +279,7 @@ public class MultilineCsvParser extends AbstractProcessor {
                          Reader reader = new MultiDelimiterTranslatingReader(base, lineDelim, RECORD_SEP, colDelim, COLUMN_SEP)) {
 
                         // CSV Parser를 실행합니다. 실제 처리는 RowProcessor를 사용합니다.
+                        // CSV Parser가 파싱한 컬럼을 특수하게 처리하고자 하는 경우 Row Processor를 구현하여 적용하도록 합니다.
                         NewlineToSpaceConverter rowProcessor = new NewlineToSpaceConverter(colDelim, outLineDelim, outColDelim, writer, rowCounter, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn, log);
                         settings.setProcessor(rowProcessor);
 
