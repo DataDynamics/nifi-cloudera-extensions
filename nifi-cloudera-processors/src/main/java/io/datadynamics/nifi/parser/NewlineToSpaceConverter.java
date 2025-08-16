@@ -1,7 +1,7 @@
 package io.datadynamics.nifi.parser;
 
-import com.univocity.parsers.common.ParsingContext;
-import com.univocity.parsers.common.processor.AbstractRowProcessor;
+import shaded.com.univocity.parsers.common.ParsingContext;
+import shaded.com.univocity.parsers.common.processor.AbstractRowProcessor;
 import org.apache.nifi.logging.ComponentLog;
 
 import java.io.IOException;

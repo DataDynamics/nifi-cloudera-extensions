@@ -1,10 +1,10 @@
 package io.datadynamics.nifi.parser;
 
-import com.univocity.parsers.common.ParsingContext;
-import com.univocity.parsers.common.processor.AbstractRowProcessor;
-import com.univocity.parsers.csv.CsvFormat;
-import com.univocity.parsers.csv.CsvParser;
-import com.univocity.parsers.csv.CsvParserSettings;
+import shaded.com.univocity.parsers.common.ParsingContext;
+import shaded.com.univocity.parsers.common.processor.AbstractRowProcessor;
+import shaded.com.univocity.parsers.csv.CsvFormat;
+import shaded.com.univocity.parsers.csv.CsvParser;
+import shaded.com.univocity.parsers.csv.CsvParserSettings;
 
 import java.io.*;
 import java.nio.charset.Charset;

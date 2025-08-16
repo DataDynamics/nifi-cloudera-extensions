@@ -1,9 +1,9 @@
 package io.datadynamics.nifi.parser;
 
 
-import com.univocity.parsers.csv.CsvFormat;
-import com.univocity.parsers.csv.CsvParser;
-import com.univocity.parsers.csv.CsvParserSettings;
+import shaded.com.univocity.parsers.csv.CsvFormat;
+import shaded.com.univocity.parsers.csv.CsvParser;
+import shaded.com.univocity.parsers.csv.CsvParserSettings;
 import org.apache.nifi.annotation.behavior.*;
 import org.apache.nifi.annotation.behavior.InputRequirement.Requirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
