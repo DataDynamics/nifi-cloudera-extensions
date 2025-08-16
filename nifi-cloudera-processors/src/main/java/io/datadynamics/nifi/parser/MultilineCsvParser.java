@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @SupportsBatching
 @InputRequirement(Requirement.INPUT_REQUIRED)
 @Tags({"cloudera", "csv", "parse", "delimiter", "multi-character"})
-@CapabilityDescription("라인과 컬럼 구분자가 모두 다문자 문자열이면서 2바이트 이상인 CSV 파일을 파싱합니다. " +
+@CapabilityDescription("라인과 컬럼 구분자가 모두 다문자 문자열이면서 2바이트 이상인 CSV 파일을 파싱하고, 컬럼값에 라인 구분자가 포함된 경우 Space 문자로 변경합니다. " +
         "선택적으로 헤더 행과 Quote을 지원하며(RFC4180 유사: 따옴표 문자는 두 번 연속으로 사용하여 이스케이프), 하나의 FlowFile을 출력합니다.")
 @WritesAttributes({
         @WritesAttribute(attribute = "parsecsv.record.count", description = "파싱한 레코드 수(헤더 제외)"),
