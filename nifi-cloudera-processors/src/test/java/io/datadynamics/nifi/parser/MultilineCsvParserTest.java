@@ -26,16 +26,13 @@ public class MultilineCsvParserTest {
         runner.setProperty(MultilineCsvParser.SKIP_HEADER_COUNT, "2");
         runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        String input1 = "a^|b^|casdf\nasdfasdf@@\n";
-        String input2 = "a^|b^|casdf\nasdfasdf@@\n";
-        String input3 = "H1^|H2^|H3@@\n";
-        String input4 = "a^|b^|casdf\nasdfasdf@@\n";
+        String input1 = "a^|b^|casdf\nasdfasdf@@\n"
+                + "a^|b^|casdf\nasdfasdf@@\n"
+                + "H1^|H2^|H3@@\n"
+                + "a^|b^|casdf\nasdfasdf@@\n";
         String expected = "a,b,casdf asdfasdf\n";
 
         runner.enqueue(input1.getBytes(StandardCharsets.UTF_8));
-        runner.enqueue(input2.getBytes(StandardCharsets.UTF_8));
-        runner.enqueue(input3.getBytes(StandardCharsets.UTF_8));
-        runner.enqueue(input4.getBytes(StandardCharsets.UTF_8));
         runner.run();
 
         runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
@@ -126,7 +123,7 @@ public class MultilineCsvParserTest {
     void quotes_protect_delimiters_and_double_quote_is_unescaped() {
         TestRunner runner = newRunner();
 
-	    runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
+        runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
         runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
         // 기본 quote = '"'

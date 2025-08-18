@@ -270,6 +270,16 @@ public class MultilineCsvParser extends AbstractProcessor {
         final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String outColRaw = context.getProperty(OUTPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
 
+        // CSV Parser를 설정합니다.
+        CsvParserSettings settings = new CsvParserSettings();
+        settings.setSkipEmptyLines(skipEmptyLine);          // 빈 레코드도 유지 (필요 시 조절)
+        settings.setHeaderExtractionEnabled(hasHeader);     // 헤더가 없다고 가정 (있다면 true)
+        settings.setNullValue("");                          // null 대신 빈문자열
+        settings.setEmptyValue("");                         // 빈 필드 값 보존
+        if (hasHeader && skipHeaderCount > 0) {             // 헤더가 있고 시작 라인을 건너뛰기 시도
+            settings.setNumberOfRowsToSkip(skipHeaderCount);
+        }
+
         // Validation
         if (("CF".equals(fileType) || "DF".equals(fileType)) && columnCount < 1) {
             throw new ProcessException("파일 유형이 CF, DF 유형이라면 검증할 컬럼의 개수는 1 이상이어야 합니다.");
@@ -292,13 +302,6 @@ public class MultilineCsvParser extends AbstractProcessor {
 
         // Downstream으로 전달할 FlowFile을 생성합니다.
         FlowFile out = session.create(ff);
-
-        // CSV Parser를 설정합니다.
-        CsvParserSettings settings = new CsvParserSettings();
-        settings.setSkipEmptyLines(skipEmptyLine);          // 빈 레코드도 유지 (필요 시 조절)
-        settings.setHeaderExtractionEnabled(hasHeader);     // 헤더가 없다고 가정 (있다면 true)
-        settings.setNullValue("");                          // null 대신 빈문자열
-        settings.setEmptyValue("");                         // 빈 필드 값 보존
 
         // CSV Parser의 Quote를 설정합니다.
         CsvFormat format = settings.getFormat();

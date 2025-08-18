@@ -66,6 +66,7 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 
     @Override
     public void rowProcessed(String[] rows, ParsingContext context) {
+        System.out.println(Joiner.on(COLUMN_SEP).join(rows));
         // 컬럼 카운트를 지정하면 컬럼의 개수를 검증합니다.
         if (columnCountForValidation > 0) {
             if (columnCountForValidation != rows.length) {
