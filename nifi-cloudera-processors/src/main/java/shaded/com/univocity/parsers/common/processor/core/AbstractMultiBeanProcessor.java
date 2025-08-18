@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * A {@link Processor} implementation for converting rows extracted from any implementation of {@link AbstractParser} into java objects.
  *
- * <p>The class types passed to the constructor of this class must contain the annotations provided in {@link com.univocity.parsers.annotations}.
+ * <p>The class types passed to the constructor of this class must contain the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
  *
  * <p> For each row processed, one or more java bean instances of any given class will be created with their fields populated.
  * <p> Each individual instance will then be sent to the {@link AbstractMultiBeanProcessor#beanProcessed(Class, Object, Context)} method, where the user can access the

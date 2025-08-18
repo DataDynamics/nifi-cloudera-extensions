@@ -25,7 +25,7 @@ import shaded.com.univocity.parsers.common.processor.core.BeanConversionProcesso
 /**
  *
  * A {@link RowWriterProcessor} implementation for converting annotated java objects into object arrays suitable for writing in any implementation of {@link AbstractWriter}.
- * <p>The class type of the object must contain the annotations provided in {@link com.univocity.parsers.annotations}.
+ * <p>The class type of the object must contain the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
  *
  * <p> For any given java bean instance, this processor will read and convert annotated fields into an object array.
  *
@@ -45,7 +45,7 @@ public class BeanWriterProcessor<T> extends BeanConversionProcessor<T> implement
     /**
      * Initializes the BeanWriterProcessor with the annotated bean class
      *
-     * @param beanType the class annotated with one or more of the annotations provided in {@link com.univocity.parsers.annotations}.
+     * @param beanType the class annotated with one or more of the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
      */
     public BeanWriterProcessor(Class<T> beanType) {
         super(beanType, MethodFilter.ONLY_GETTERS);

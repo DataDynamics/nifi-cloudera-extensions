@@ -28,7 +28,7 @@ import java.lang.annotation.*;
 
 /**
  * Indicates the field is parsed. If the annotated field type is not a String, it will be automatically converted using one
- * of the existing {@link Conversion} implementations in package {@link com.univocity.parsers.conversions}.
+ * of the existing {@link Conversion} implementations in package {@link shaded.com.univocity.parsers.conversions}.
  *
  *
  * <p>Commonly used for java beans processed using {@link BeanProcessor} and/or {@link BeanWriterProcessor}

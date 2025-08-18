@@ -29,11 +29,11 @@ import shaded.com.univocity.parsers.fixed.FixedWidthWriter;
  * <p>When writing to an output, the writer will obtain the RowWriterProcessor from {@link CommonWriterSettings#getRowWriterProcessor()}, and
  * invoke {@link RowWriterProcessor#write(Object, NormalizedString[], int[])} to convert the input to an array of objects. This array of objects will in turn be handed to the writer to produce a record in the expected format.
  *
- * <p>univocity-parsers provides some useful default implementations of this interface in the package {@link com.univocity.parsers.common.processor}, namely:
+ * <p>univocity-parsers provides some useful default implementations of this interface in the package {@link shaded.com.univocity.parsers.common.processor}, namely:
  *
  * <ul>
  * <li>{@link ObjectRowWriterProcessor}: used for executing conversions of Object values on input rows using instances of {@link Conversion} before writing to the output</li>
- * <li>{@link BeanWriterProcessor}: used for converting javabeans annotated with the annotations provided in package {@link com.univocity.parsers.annotations} into an object row before writing to the output</li>
+ * <li>{@link BeanWriterProcessor}: used for converting javabeans annotated with the annotations provided in package {@link shaded.com.univocity.parsers.annotations} into an object row before writing to the output</li>
  * </ul>
  *
  * @param <T> the type that is converted by this implementation into an Object array, suitable for writing to the output.

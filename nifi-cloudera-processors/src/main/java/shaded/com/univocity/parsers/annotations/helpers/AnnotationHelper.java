@@ -85,10 +85,10 @@ public class AnnotationHelper {
     }
 
     /**
-     * Identifies the proper conversion for a given type and an annotation from the package {@link com.univocity.parsers.annotations}
+     * Identifies the proper conversion for a given type and an annotation from the package {@link shaded.com.univocity.parsers.annotations}
      *
      * @param classType  the type to have conversions applied to
-     * @param annotation the annotation from {@link com.univocity.parsers.annotations} that identifies a {@link Conversion} instance.
+     * @param annotation the annotation from {@link shaded.com.univocity.parsers.annotations} that identifies a {@link Conversion} instance.
      * @return The {@link Conversion} that should be applied to the type
      */
     @SuppressWarnings("rawtypes")
@@ -325,7 +325,7 @@ public class AnnotationHelper {
      *
      * @param fieldType The type of field to have conversions applied to.
      * @param target    the annotated attribute of method that has the annotation
-     * @param parsed    the {@link Parsed} annotation from {@link com.univocity.parsers.annotations}.
+     * @param parsed    the {@link Parsed} annotation from {@link shaded.com.univocity.parsers.annotations}.
      * @return The {@link Conversion} that should be applied to the field type
      */
     @SuppressWarnings({"rawtypes", "unchecked"})

@@ -36,7 +36,7 @@ import static shaded.com.univocity.parsers.annotations.helpers.AnnotationHelper.
 
 /**
  * The base class for {@link Processor} and {@link RowWriterProcessor} implementations that support java beans annotated with the annotations provided in
- * {@link com.univocity.parsers.annotations}.
+ * {@link shaded.com.univocity.parsers.annotations}.
  *
  * @param <T> the annotated class type.
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
@@ -67,7 +67,7 @@ public class BeanConversionProcessor<T> extends DefaultConversionProcessor {
      * only the setter methods will be used (getters will be ignored), making this processor useful mostly for parsing into
      * instances of the given class.
      *
-     * @param beanType the class annotated with one or more of the annotations provided in {@link com.univocity.parsers.annotations}.
+     * @param beanType the class annotated with one or more of the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
      * @deprecated Use the {@link #BeanConversionProcessor(Class, MethodFilter)} constructor instead.
      */
     @Deprecated
@@ -78,7 +78,7 @@ public class BeanConversionProcessor<T> extends DefaultConversionProcessor {
     /**
      * Initializes the BeanConversionProcessor with the annotated bean class
      *
-     * @param beanType     the class annotated with one or more of the annotations provided in {@link com.univocity.parsers.annotations}.
+     * @param beanType     the class annotated with one or more of the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
      * @param methodFilter filter to apply over annotated methods when the processor is reading data from beans (to write values to an output)
      *                     or writing values into beans (when parsing). It is used to choose either a "get" or a "set"
      *                     method annotated with {@link Parsed}, when both methods target the same field.

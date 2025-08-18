@@ -24,7 +24,7 @@ import shaded.com.univocity.parsers.common.NormalizedString;
 
 /**
  * A {@link Processor} implementation for converting rows extracted from any implementation of {@link AbstractParser} into java objects.
- * <p>The class type of the object must contain the annotations provided in {@link com.univocity.parsers.annotations}.
+ * <p>The class type of the object must contain the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
  *
  * <p> For each row processed, a java bean instance of a given class will be created with its fields populated.
  * <p> This instance will then be sent to the {@link AbstractBeanProcessor#beanProcessed(Object, Context)} method, where the user can access it.

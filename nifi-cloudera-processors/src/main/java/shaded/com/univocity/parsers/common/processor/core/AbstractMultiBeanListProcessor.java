@@ -27,7 +27,7 @@ import java.util.*;
  * When an object of a particular type can't be generated from a row, {@code null} will be added to the list. This ensures all lists are the same size,
  * and each element of each list contains the exact information parsed from each row.
  *
- * <p>The class types passed to the constructor of this class must contain the annotations provided in {@link com.univocity.parsers.annotations}.
+ * <p>The class types passed to the constructor of this class must contain the annotations provided in {@link shaded.com.univocity.parsers.annotations}.
  *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser

@@ -33,7 +33,7 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  *
  * <p>More control and information over the parsing process are provided by the {@link ParsingContext} object.
  *
- * <p>univocity-parsers provides many useful default implementations of this interface in the package {@link com.univocity.parsers.common.processor}, namely:
+ * <p>univocity-parsers provides many useful default implementations of this interface in the package {@link shaded.com.univocity.parsers.common.processor}, namely:
  *
  * <ul>
  * <li>{@link RowListProcessor}: convenience class for storing the processed rows into a list.</li>
@@ -41,7 +41,7 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * <li>{@link ObjectRowListProcessor}: convenience class for rows of converted objects using {@link ObjectRowProcessor} into a list.</li>
  * <li>{@link MasterDetailProcessor}: used for reading inputs where records are organized in a master-detail fashion (with a master element that contains a list of associated elements) </li>
  * <li>{@link MasterDetailListProcessor}: convenience class for storing {@link MasterDetailRecord} created by instances created by {@link MasterDetailProcessor} into a list </li>
- * <li>{@link BeanProcessor}: used for automatically create and populate javabeans annotated with the annotations provided in package {@link com.univocity.parsers.annotations}</li>
+ * <li>{@link BeanProcessor}: used for automatically create and populate javabeans annotated with the annotations provided in package {@link shaded.com.univocity.parsers.annotations}</li>
  * <li>{@link BeanListProcessor}: convenience class for storing all javabeans created by {@link BeanProcessor} into a list</li>
  * </ul>
  *
