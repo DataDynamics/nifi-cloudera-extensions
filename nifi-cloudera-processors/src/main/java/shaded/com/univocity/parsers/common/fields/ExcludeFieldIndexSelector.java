@@ -26,52 +26,52 @@ import java.util.Set;
  *
  * <p> This selector stores undesired fields and will return the indexes of those fields that are not part of the selection.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see FieldSelector
  * @see FieldSet
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public class ExcludeFieldIndexSelector extends FieldSet<Integer> implements FieldSelector {
 
-	/**
-	 * Returns the indexes of any that are part of a sequence of headers but not part of the selection.
-	 * @param columns the sequence of headers that might have some elements selected by this FieldSelector
-	 * @return the positions of all elements which were not selected.
-	 */
-	@Override
-	public int[] getFieldIndexes(NormalizedString[] columns) {
-		if(columns == null){
-			return null;
-		}
-		Set<Integer> chosenFields = new HashSet<Integer>(this.get());
+    /**
+     * Returns the indexes of any that are part of a sequence of headers but not part of the selection.
+     *
+     * @param columns the sequence of headers that might have some elements selected by this FieldSelector
+     * @return the positions of all elements which were not selected.
+     */
+    @Override
+    public int[] getFieldIndexes(NormalizedString[] columns) {
+        if (columns == null) {
+            return null;
+        }
+        Set<Integer> chosenFields = new HashSet<Integer>(this.get());
 
-		Iterator<Integer> it = chosenFields.iterator();
-		while(it.hasNext()){
-			Integer chosenIndex = it.next();
-			if (chosenIndex >= columns.length || chosenIndex < 0) {
-				it.remove();
-			}
-		}
+        Iterator<Integer> it = chosenFields.iterator();
+        while (it.hasNext()) {
+            Integer chosenIndex = it.next();
+            if (chosenIndex >= columns.length || chosenIndex < 0) {
+                it.remove();
+            }
+        }
 
-		int[] out = new int[columns.length - chosenFields.size()];
+        int[] out = new int[columns.length - chosenFields.size()];
 
-		int j = 0;
-		for (int i = 0; i < columns.length; i++) {
-			if (!chosenFields.contains(i)) {
-				out[j++] = i;
-			}
-		}
-		return out;
-	}
+        int j = 0;
+        for (int i = 0; i < columns.length; i++) {
+            if (!chosenFields.contains(i)) {
+                out[j++] = i;
+            }
+        }
+        return out;
+    }
 
-	@Override
-	public String describe() {
-		return "undesired " + super.describe();
-	}
+    @Override
+    public String describe() {
+        return "undesired " + super.describe();
+    }
 
-	@Override
-	public int[] getFieldIndexes(String[] headers) {
-		return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
-	}
+    @Override
+    public int[] getFieldIndexes(String[] headers) {
+        return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
+    }
 }

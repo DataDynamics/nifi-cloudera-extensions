@@ -26,60 +26,60 @@ import shaded.com.univocity.parsers.annotations.Validate;
  */
 public class DataValidationException extends DataProcessingException {
 
-	private static final long serialVersionUID = 3110975527111918123L;
+    private static final long serialVersionUID = 3110975527111918123L;
 
-	/**
-	 * Creates a new validation exception with an error message only.
-	 *
-	 * @param message the error message
-	 */
-	public DataValidationException(String message) {
-		super(message, -1, null, null);
-	}
+    /**
+     * Creates a new validation exception with an error message only.
+     *
+     * @param message the error message
+     */
+    public DataValidationException(String message) {
+        super(message, -1, null, null);
+    }
 
-	/**
-	 * Creates a new validation exception with an error message and error cause
-	 *
-	 * @param message the error message
-	 * @param cause   the cause of the error
-	 */
-	public DataValidationException(String message, Throwable cause) {
-		super(message, -1, null, cause);
-	}
+    /**
+     * Creates a new validation exception with an error message and error cause
+     *
+     * @param message the error message
+     * @param cause   the cause of the error
+     */
+    public DataValidationException(String message, Throwable cause) {
+        super(message, -1, null, cause);
+    }
 
-	/**
-	 * Creates a new validation exception with an error message and the row that could not be validated.
-	 *
-	 * @param message the error message
-	 * @param row     the row that could not be processed.
-	 */
-	public DataValidationException(String message, Object[] row) {
-		super(message, -1, row, null);
-	}
+    /**
+     * Creates a new validation exception with an error message and the row that could not be validated.
+     *
+     * @param message the error message
+     * @param row     the row that could not be processed.
+     */
+    public DataValidationException(String message, Object[] row) {
+        super(message, -1, row, null);
+    }
 
-	/**
-	 * Creates a new validation exception with an error message, the row that could not be validated, and the error cause.
-	 *
-	 * @param message the error message
-	 * @param row     the row that could not be processed.
-	 * @param cause   the cause of the error
-	 */
-	public DataValidationException(String message, Object[] row, Throwable cause) {
-		super(message, -1, row, cause);
-	}
+    /**
+     * Creates a new validation exception with an error message, the row that could not be validated, and the error cause.
+     *
+     * @param message the error message
+     * @param row     the row that could not be processed.
+     * @param cause   the cause of the error
+     */
+    public DataValidationException(String message, Object[] row, Throwable cause) {
+        super(message, -1, row, cause);
+    }
 
-	/**
-	 * Creates a new validation exception with an error message and the column that could not be validated.
-	 *
-	 * @param message     the error message
-	 * @param columnIndex index of the column that could not be validated.
-	 */
-	public DataValidationException(String message, int columnIndex) {
-		super(message, columnIndex, null, null);
-	}
+    /**
+     * Creates a new validation exception with an error message and the column that could not be validated.
+     *
+     * @param message     the error message
+     * @param columnIndex index of the column that could not be validated.
+     */
+    public DataValidationException(String message, int columnIndex) {
+        super(message, columnIndex, null, null);
+    }
 
-	@Override
-	protected String getErrorDescription() {
-		return "Error validating parsed input";
-	}
+    @Override
+    protected String getErrorDescription() {
+        return "Error validating parsed input";
+    }
 }

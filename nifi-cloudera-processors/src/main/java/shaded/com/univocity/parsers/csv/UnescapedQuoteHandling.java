@@ -23,7 +23,7 @@ import shaded.com.univocity.parsers.common.TextParsingException;
 
 /**
  * This enumeration is used to determine how the ({@link CsvParser}) will handle values with unescaped quotes.
- *
+ * <p>
  * Use {@link CsvParserSettings#setUnescapedQuoteHandling(UnescapedQuoteHandling)} to configure the appropriate
  * handling of unescaped quotes on your input.
  *
@@ -35,34 +35,34 @@ import shaded.com.univocity.parsers.common.TextParsingException;
  */
 public enum UnescapedQuoteHandling {
 
-	/**
-	 * If unescaped quotes are found in the input, accumulate the quote character and proceed parsing the value
-	 * as a quoted value, until a closing quote is found.
-	 */
-	STOP_AT_CLOSING_QUOTE,
+    /**
+     * If unescaped quotes are found in the input, accumulate the quote character and proceed parsing the value
+     * as a quoted value, until a closing quote is found.
+     */
+    STOP_AT_CLOSING_QUOTE,
 
-	/**
-	 * If unescaped quotes are found in the input, consider the value as an unquoted value. This will make the parser
-	 * accumulate all characters of the current parsed value until the delimiter defined by {@link CsvFormat#getDelimiter()} is found.
-	 * If no delimiter is found in the value, the parser will continue accumulating characters from the input
-	 * until a delimiter or line ending is found.
-	 */
-	BACK_TO_DELIMITER,
+    /**
+     * If unescaped quotes are found in the input, consider the value as an unquoted value. This will make the parser
+     * accumulate all characters of the current parsed value until the delimiter defined by {@link CsvFormat#getDelimiter()} is found.
+     * If no delimiter is found in the value, the parser will continue accumulating characters from the input
+     * until a delimiter or line ending is found.
+     */
+    BACK_TO_DELIMITER,
 
-	/**
-	 * If unescaped quotes are found in the input, consider the value as an unquoted value. This will make the parser
-	 * accumulate all characters until the delimiter defined by {@link CsvFormat#getDelimiter()}, or a line ending is found in the input.
-	 */
-	STOP_AT_DELIMITER,
+    /**
+     * If unescaped quotes are found in the input, consider the value as an unquoted value. This will make the parser
+     * accumulate all characters until the delimiter defined by {@link CsvFormat#getDelimiter()}, or a line ending is found in the input.
+     */
+    STOP_AT_DELIMITER,
 
-	/**
-	 * If unescaped quotes are found in the input, the content parsed for the given value will be skipped
-	 * (until the next delimiter is found) and the value set in {@link CommonSettings#getNullValue()} will be produced instead.
-	 */
-	SKIP_VALUE,
+    /**
+     * If unescaped quotes are found in the input, the content parsed for the given value will be skipped
+     * (until the next delimiter is found) and the value set in {@link CommonSettings#getNullValue()} will be produced instead.
+     */
+    SKIP_VALUE,
 
-	/**
-	 * If unescaped quotes are found in the input, a {@link TextParsingException} will be thrown.
-	 */
-	RAISE_ERROR,
+    /**
+     * If unescaped quotes are found in the input, a {@link TextParsingException} will be thrown.
+     */
+    RAISE_ERROR,
 }

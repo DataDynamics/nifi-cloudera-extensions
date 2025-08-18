@@ -21,15 +21,16 @@ import shaded.com.univocity.parsers.annotations.Format;
  * This interface identifies conversions associated with the {@link Format} annotation.
  * It is used when {@link Format#options()} is defined to set any give properties of the underlying formatter.
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @param <T> The type of the formatter object (typically {@link java.text.DecimalFormat} for numeric values, and {@link java.text.SimpleDateFormat} for dates)
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public interface FormattedConversion<T> {
 
-	/**
-	 * Returns the formatter objects
-	 * @return the formatter objects used to apply formatting to values to generate formatted Strings, and parsing formatted Strings into values
-	 */
-	T[] getFormatterObjects();
+    /**
+     * Returns the formatter objects
+     *
+     * @return the formatter objects used to apply formatting to values to generate formatted Strings, and parsing formatted Strings into values
+     */
+    T[] getFormatterObjects();
 }

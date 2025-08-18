@@ -25,12 +25,12 @@ import shaded.com.univocity.parsers.common.processor.core.Processor;
  */
 public class CompositeRowProcessor extends CompositeProcessor<ParsingContext> implements RowProcessor {
 
-	/**
-	 * Creates a new {@code CompositeProcessor} with the list of {@link Processor} implementations to be used.
-	 *
-	 * @param processors the sequence of {@link Processor} implementations to be used.
-	 */
-	public CompositeRowProcessor(Processor... processors) {
-		super(processors);
-	}
+    /**
+     * Creates a new {@code CompositeProcessor} with the list of {@link Processor} implementations to be used.
+     *
+     * @param processors the sequence of {@link Processor} implementations to be used.
+     */
+    public CompositeRowProcessor(Processor... processors) {
+        super(processors);
+    }
 }

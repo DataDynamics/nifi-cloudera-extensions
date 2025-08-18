@@ -27,11 +27,12 @@ package shaded.com.univocity.parsers.common.input;
  */
 public interface InputAnalysisProcess {
 
-	/**
-	 * A sequence of characters of the input buffer to be analyzed.
-	 * @param characters the input buffer
-	 * @param length the last character position loaded into the buffer.
-	 */
-	void execute(char[] characters, int length);
+    /**
+     * A sequence of characters of the input buffer to be analyzed.
+     *
+     * @param characters the input buffer
+     * @param length     the last character position loaded into the buffer.
+     */
+    void execute(char[] characters, int length);
 
 }

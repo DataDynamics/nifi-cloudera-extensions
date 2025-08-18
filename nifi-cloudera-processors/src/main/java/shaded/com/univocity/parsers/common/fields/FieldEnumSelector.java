@@ -30,36 +30,36 @@ import shaded.com.univocity.parsers.common.NormalizedString;
 @SuppressWarnings("rawtypes")
 public class FieldEnumSelector extends FieldSet<Enum> implements FieldSelector {
 
-	private FieldNameSelector names = new FieldNameSelector();
+    private FieldNameSelector names = new FieldNameSelector();
 
-	/**
-	 * Returns the position of a given column represented by an enumeration value.
-	 *
-	 * @param column the column whose position will be returned
-	 * @return the position of the given column.
-	 */
-	public int getFieldIndex(Enum column) {
-		return names.getFieldIndex(column.toString());
-	}
+    /**
+     * Returns the position of a given column represented by an enumeration value.
+     *
+     * @param column the column whose position will be returned
+     * @return the position of the given column.
+     */
+    public int getFieldIndex(Enum column) {
+        return names.getFieldIndex(column.toString());
+    }
 
-	@Override
-	public int[] getFieldIndexes(NormalizedString[] headers) {
-		if(headers == null){
-			return null;
-		}
-		names.set(ArgumentUtils.toArray(this.get()));
-		return names.getFieldIndexes(headers);
-	}
+    @Override
+    public int[] getFieldIndexes(NormalizedString[] headers) {
+        if (headers == null) {
+            return null;
+        }
+        names.set(ArgumentUtils.toArray(this.get()));
+        return names.getFieldIndexes(headers);
+    }
 
 
-	public FieldEnumSelector clone() {
-		FieldEnumSelector out = (FieldEnumSelector) super.clone();
-		out.names = (FieldNameSelector) names.clone();
-		return out;
-	}
+    public FieldEnumSelector clone() {
+        FieldEnumSelector out = (FieldEnumSelector) super.clone();
+        out.names = (FieldNameSelector) names.clone();
+        return out;
+    }
 
-	@Override
-	public int[] getFieldIndexes(String[] headers) {
-		return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
-	}
+    @Override
+    public int[] getFieldIndexes(String[] headers) {
+        return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
+    }
 }

@@ -22,29 +22,28 @@ import java.util.List;
 /**
  * A FieldSelector capable of selecting fields by their position in a record.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see FieldSelector
  * @see FieldSet
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public class FieldIndexSelector extends FieldSet<Integer> implements FieldSelector {
 
-	@Override
-	public int[] getFieldIndexes(NormalizedString[] columns) {
-		List<Integer> chosenIndexes = this.get();
-		int[] out = new int[chosenIndexes.size()];
+    @Override
+    public int[] getFieldIndexes(NormalizedString[] columns) {
+        List<Integer> chosenIndexes = this.get();
+        int[] out = new int[chosenIndexes.size()];
 
-		int i = 0;
-		for (Integer index : chosenIndexes) {
-			out[i++] = index;
-		}
+        int i = 0;
+        for (Integer index : chosenIndexes) {
+            out[i++] = index;
+        }
 
-		return out;
-	}
+        return out;
+    }
 
-	@Override
-	public int[] getFieldIndexes(String[] headers) {
-		return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
-	}
+    @Override
+    public int[] getFieldIndexes(String[] headers) {
+        return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
+    }
 }

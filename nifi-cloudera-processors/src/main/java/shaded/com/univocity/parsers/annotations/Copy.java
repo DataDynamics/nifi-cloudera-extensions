@@ -36,13 +36,13 @@ import java.lang.annotation.*;
  * }
  * </code>
  * </pre>
- *
+ * <p>
  * Values set on attributes {@code field} or {@code myIndex} in {@code @MyReplacement} will be assigned to the
  * attributes {@code field} and {@code index} of the {@code @Parsed} annotation. This allows you to apply the
  * {@code @MyReplacement} annotation to any given field of your class while configuring the field name and index
  * to be set for the {@code @Parsed} annotation. This eliminates the need for adding explicit, additional annotations and
  * their specific property values to each and every field.
- *
+ * <p>
  * The following class can now make use of the {@code @MyReplacement} annotation to apply the the annotations
  * {@code @Replace} and {@code @Parsed}, configuring the properties of the "inherited" {@code @Parsed}:
  *
@@ -67,18 +67,18 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface Copy {
 
-	/**
-	 * Target annotation class that is part of a meta-annotation.
-	 *
-	 * @return the class whose properties will be set from a given attribute of a meta-annotation
-	 */
-	Class to();
+    /**
+     * Target annotation class that is part of a meta-annotation.
+     *
+     * @return the class whose properties will be set from a given attribute of a meta-annotation
+     */
+    Class to();
 
-	/**
-	 * Target property of the given annotation class that is part of a meta-annotation.
-	 *
-	 * @return the name of the property in the given annotation class that should receive the value of the
-	 * meta-annotation property.
-	 */
-	String property() default "";
+    /**
+     * Target property of the given annotation class that is part of a meta-annotation.
+     *
+     * @return the name of the property in the given annotation class that should receive the value of the
+     * meta-annotation property.
+     */
+    String property() default "";
 }

@@ -48,69 +48,69 @@ import java.util.List;
  */
 public abstract class AbstractObjectListProcessor<T extends Context> extends AbstractObjectProcessor<T> {
 
-	private List<Object[]> rows;
-	private String[] headers;
-	private final int expectedRowCount;
+    private final int expectedRowCount;
+    private List<Object[]> rows;
+    private String[] headers;
 
 
-	/**
-	 * Creates a new processor of {@code Object[]} rows with varying types.
-	 */
-	public AbstractObjectListProcessor() {
-		this(0);
-	}
+    /**
+     * Creates a new processor of {@code Object[]} rows with varying types.
+     */
+    public AbstractObjectListProcessor() {
+        this(0);
+    }
 
-	/**
-	 * Creates a new processor of {@code Object[]} rows with varying types.
-	 *
-	 * @param expectedRowCount expected number of rows to be parsed from the input.
-	 *                         Used to pre-allocate the size of the output {@link List} returned by {@link #getRows()}
-	 */
-	public AbstractObjectListProcessor(int expectedRowCount) {
-		this.expectedRowCount = expectedRowCount <= 0 ? 10000 : expectedRowCount;
-	}
+    /**
+     * Creates a new processor of {@code Object[]} rows with varying types.
+     *
+     * @param expectedRowCount expected number of rows to be parsed from the input.
+     *                         Used to pre-allocate the size of the output {@link List} returned by {@link #getRows()}
+     */
+    public AbstractObjectListProcessor(int expectedRowCount) {
+        this.expectedRowCount = expectedRowCount <= 0 ? 10000 : expectedRowCount;
+    }
 
 
-	@Override
-	public void processStarted(T context) {
-		super.processStarted(context);
-		rows = new ArrayList<Object[]>(expectedRowCount);
-	}
+    @Override
+    public void processStarted(T context) {
+        super.processStarted(context);
+        rows = new ArrayList<Object[]>(expectedRowCount);
+    }
 
-	/**
-	 * Stores the row extracted by the parser and them converted to an Object array into a list.
-	 *
-	 * @param row     the data extracted by the parser for an individual record and converted to an Object array.
-	 * @param context A contextual object with information and controls over the current state of the parsing process
-	 */
-	@Override
-	public void rowProcessed(Object[] row, T context) {
-		rows.add(row);
-	}
+    /**
+     * Stores the row extracted by the parser and them converted to an Object array into a list.
+     *
+     * @param row     the data extracted by the parser for an individual record and converted to an Object array.
+     * @param context A contextual object with information and controls over the current state of the parsing process
+     */
+    @Override
+    public void rowProcessed(Object[] row, T context) {
+        rows.add(row);
+    }
 
-	@Override
-	public void processEnded(T context) {
-		super.processEnded(context);
-		this.headers = context.headers();
+    @Override
+    public void processEnded(T context) {
+        super.processEnded(context);
+        this.headers = context.headers();
 
-	}
+    }
 
-	/**
-	 * Returns the list of parsed and converted records
-	 *
-	 * @return the list of parsed and converted records
-	 */
-	public List<Object[]> getRows() {
-		return rows == null ? Collections.<Object[]>emptyList() : rows;
-	}
+    /**
+     * Returns the list of parsed and converted records
+     *
+     * @return the list of parsed and converted records
+     */
+    public List<Object[]> getRows() {
+        return rows == null ? Collections.<Object[]>emptyList() : rows;
+    }
 
-	/**
-	 * Returns the record headers. This can be either the headers defined in {@link CommonSettings#getHeaders()} or the headers parsed in the file when {@link CommonSettings#getHeaders()}  equals true
-	 *
-	 * @return the headers of all records parsed.
-	 */
-	public String[] getHeaders() {
-		return headers;
-	}
+    /**
+     * Returns the record headers. This can be either the headers defined in {@link CommonSettings#getHeaders()} or the headers parsed in the file when {@link CommonSettings#getHeaders()}  equals true
+     *
+     * @return the headers of all records parsed.
+     */
+    public String[] getHeaders() {
+        return headers;
+    }
 
 }

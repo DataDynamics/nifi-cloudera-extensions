@@ -28,27 +28,28 @@ import java.lang.annotation.*;
  *
  * <p>Commonly used for java beans processed using {@link BeanProcessor} and/or {@link BeanWriterProcessor}
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see Conversion
  * @see Conversions
  * @see BeanProcessor
  * @see BeanWriterProcessor
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface Replace {
-	/**
-	 * The regular expression to be executed against the String value of the annotated field
-	 * @return the regular expression
-	 */
-	String expression();
+    /**
+     * The regular expression to be executed against the String value of the annotated field
+     *
+     * @return the regular expression
+     */
+    String expression();
 
-	/**
-	 * The replacement string to substitute any contents matched by the given {@link Replace#expression()}
-	 * @return the replacement string
-	 */
-	String replacement();
+    /**
+     * The replacement string to substitute any contents matched by the given {@link Replace#expression()}
+     *
+     * @return the replacement string
+     */
+    String replacement();
 }

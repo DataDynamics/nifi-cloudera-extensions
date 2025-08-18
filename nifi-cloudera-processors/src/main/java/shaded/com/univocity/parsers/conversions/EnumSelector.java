@@ -24,28 +24,28 @@ import shaded.com.univocity.parsers.annotations.EnumOptions;
  */
 public enum EnumSelector {
 
-	/**
-	 * Matches the result of {@link Enum#ordinal()}
-	 */
-	ORDINAL,
+    /**
+     * Matches the result of {@link Enum#ordinal()}
+     */
+    ORDINAL,
 
-	/**
-	 * Matches the result of {@link Enum#name()}
-	 */
-	NAME,
+    /**
+     * Matches the result of {@link Enum#name()}
+     */
+    NAME,
 
-	/**
-	 * Matches the result of {@link Enum#toString()} ()}
-	 */
-	STRING,
+    /**
+     * Matches the result of {@link Enum#toString()} ()}
+     */
+    STRING,
 
-	/**
-	 * Matches the value of a field of the annotated enumeration
-	 */
-	CUSTOM_FIELD,
+    /**
+     * Matches the value of a field of the annotated enumeration
+     */
+    CUSTOM_FIELD,
 
-	/**
-	 * Matches the value of a method of the annotated enumeration
-	 */
-	CUSTOM_METHOD
+    /**
+     * Matches the value of a method of the annotated enumeration
+     */
+    CUSTOM_METHOD
 }

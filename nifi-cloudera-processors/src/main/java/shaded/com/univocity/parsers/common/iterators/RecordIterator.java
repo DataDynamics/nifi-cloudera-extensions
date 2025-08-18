@@ -28,12 +28,12 @@ import java.io.File;
  */
 public abstract class RecordIterator extends ParserIterator<Record> {
 
-	public RecordIterator(AbstractParser parser) {
-		super(parser);
-	}
+    public RecordIterator(AbstractParser parser) {
+        super(parser);
+    }
 
-	@Override
-	protected final Record nextResult() {
-		return parser.parseNextRecord();
-	}
+    @Override
+    protected final Record nextResult() {
+        return parser.parseNextRecord();
+    }
 }

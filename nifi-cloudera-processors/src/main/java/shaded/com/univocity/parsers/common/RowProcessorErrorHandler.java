@@ -32,6 +32,7 @@ import shaded.com.univocity.parsers.common.processor.RowWriterProcessor;
  * <p>When writing, the {@link #handleError(DataProcessingException, Object[], Context)} method will be called only when a using
  * the {@link AbstractWriter#processRecord(Object)} methods, and {@link RowWriterProcessor} fails to execute.</p>
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see RowProcessor
  * @see RowWriterProcessor
  * @see DataProcessingException
@@ -39,8 +40,6 @@ import shaded.com.univocity.parsers.common.processor.RowWriterProcessor;
  * @see AbstractParser
  * @see AbstractWriter
  * @see CommonSettings
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public interface RowProcessorErrorHandler extends ProcessorErrorHandler<ParsingContext> {

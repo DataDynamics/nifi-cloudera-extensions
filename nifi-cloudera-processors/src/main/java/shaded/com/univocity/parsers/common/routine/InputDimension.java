@@ -25,29 +25,29 @@ import java.io.File;
  */
 public final class InputDimension {
 
-	long rows;
-	int columns;
+    long rows;
+    int columns;
 
-	InputDimension() {
+    InputDimension() {
 
-	}
+    }
 
-	/**
-	 * Returns the total number of rows the input contains.
-	 *
-	 * @return the number of rows found in the input.
-	 */
-	public final long rowCount() {
-		return rows;
-	}
+    /**
+     * Returns the total number of rows the input contains.
+     *
+     * @return the number of rows found in the input.
+     */
+    public final long rowCount() {
+        return rows;
+    }
 
-	/**
-	 * Returns the maximum number of column the input contains.
-	 *
-	 * @return the number of columns found in the input.
-	 */
-	public final int columnCount() {
-		return columns;
-	}
+    /**
+     * Returns the maximum number of column the input contains.
+     *
+     * @return the number of columns found in the input.
+     */
+    public final int columnCount() {
+        return columns;
+    }
 
 }

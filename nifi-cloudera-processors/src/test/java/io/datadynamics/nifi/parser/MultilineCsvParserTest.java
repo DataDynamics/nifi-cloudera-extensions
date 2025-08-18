@@ -35,8 +35,8 @@ public class MultilineCsvParserTest {
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
         out.assertAttributeEquals("parsecsv.record.count", "1");
         out.assertAttributeEquals("parsecsv.header.present", "false");
-        out.assertAttributeEquals("parsecsv.line.delimiter", "@@\\n");
-        out.assertAttributeEquals("parsecsv.column.delimiter", "^|");
+        out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
+        out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
         out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
     }
 
@@ -57,8 +57,8 @@ public class MultilineCsvParserTest {
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
         out.assertAttributeEquals("parsecsv.record.count", "2");
         out.assertAttributeEquals("parsecsv.header.present", "false");
-        out.assertAttributeEquals("parsecsv.line.delimiter", "@@\\n");
-        out.assertAttributeEquals("parsecsv.column.delimiter", "^|");
+        out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
+        out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
         out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
     }
 

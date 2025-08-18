@@ -25,114 +25,114 @@ import java.util.Arrays;
  */
 abstract class AbstractException extends RuntimeException {
 
-	private static final long serialVersionUID = -2993096896413328423L;
+    private static final long serialVersionUID = -2993096896413328423L;
 
-	protected int errorContentLength = -1;
+    protected int errorContentLength = -1;
 
-	protected AbstractException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    protected AbstractException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	/**
-	 * Returns a detailed message describing the error, and the internal state of the parser/writer.
-	 *
-	 * @return a detailed message describing the error
-	 */
-	@Override
-	public final String getMessage() {
-		String msg = super.getMessage();
-		msg = msg == null ? getErrorDescription() + ": " : msg;
+    protected static String printIfNotEmpty(String previous, String description, Object o) {
+        String value;
+        if (o == null || o.toString().isEmpty()) {
+            return previous;
+        } else if (o instanceof Number && ((Number) o).intValue() < 0) {
+            return previous;
+        } else if (o.getClass().isArray()) {
+            //noinspection ConstantConditions
+            value = Arrays.toString((Object[]) o);
+        } else {
+            value = String.valueOf(o);
+        }
 
-		String details = getDetails();
-		if (details != null && !details.isEmpty()) {
-			msg = msg + "\nInternal state when error was thrown: " + details;
-		}
+        String out = description + '=' + value;
 
-		msg = updateMessage(msg);
+        if (!previous.isEmpty()) {
+            out = previous + ", " + out;
+        }
+        return out;
+    }
 
-		return msg;
-	}
+    public static String restrictContent(int errorContentLength, CharSequence content) {
+        return ArgumentUtils.restrictContent(errorContentLength, content);
+    }
 
-	/**
-	 * Allows subclasses to alter the exception message that should be displayed to end users.
-	 * By default the original message is kept unchanged.
-	 *
-	 * @param msg the original message
-	 * @return the updated message.
-	 */
-	protected String updateMessage(String msg){
-		return msg;
-	}
+    public static Object[] restrictContent(int errorContentLength, Object[] content) {
+        if (content == null || errorContentLength == 0) {
+            return null;
+        }
+        return content;
+    }
 
-	/**
-	 * Subclasses must implement this method to return as much information as possible about the internal state of the parser/writer.
-	 * Use {@link #printIfNotEmpty(String, String, Object)} to create a comma-separated list of relevant properties and their (non null) values.
-	 *
-	 * The result of this method is used by the {@link #getMessage()} method to print out these details after the error message.
-	 *
-	 * @return a String describing the internal state of the parser/writer.
-	 */
-	protected abstract String getDetails();
+    /**
+     * Returns a detailed message describing the error, and the internal state of the parser/writer.
+     *
+     * @return a detailed message describing the error
+     */
+    @Override
+    public final String getMessage() {
+        String msg = super.getMessage();
+        msg = msg == null ? getErrorDescription() + ": " : msg;
 
-	/**
-	 * Returns a generic description of the error. The result of this method is used by {@link #getMessage()} to print out a general description of the error before a detailed message of the root cause.
-	 *
-	 * @return a generic description of the error.
-	 */
-	protected abstract String getErrorDescription();
+        String details = getDetails();
+        if (details != null && !details.isEmpty()) {
+            msg = msg + "\nInternal state when error was thrown: " + details;
+        }
 
-	protected static String printIfNotEmpty(String previous, String description, Object o) {
-		String value;
-		if (o == null || o.toString().isEmpty()) {
-			return previous;
-		} else if (o instanceof Number && ((Number) o).intValue() < 0) {
-			return previous;
-		} else if (o.getClass().isArray()) {
-			//noinspection ConstantConditions
-			value = Arrays.toString((Object[]) o);
-		} else {
-			value = String.valueOf(o);
-		}
+        msg = updateMessage(msg);
 
-		String out = description + '=' + value;
+        return msg;
+    }
 
-		if (!previous.isEmpty()) {
-			out = previous + ", " + out;
-		}
-		return out;
-	}
+    /**
+     * Allows subclasses to alter the exception message that should be displayed to end users.
+     * By default the original message is kept unchanged.
+     *
+     * @param msg the original message
+     * @return the updated message.
+     */
+    protected String updateMessage(String msg) {
+        return msg;
+    }
 
-	public static String restrictContent(int errorContentLength, CharSequence content) {
-		return ArgumentUtils.restrictContent(errorContentLength,content);
-	}
+    /**
+     * Subclasses must implement this method to return as much information as possible about the internal state of the parser/writer.
+     * Use {@link #printIfNotEmpty(String, String, Object)} to create a comma-separated list of relevant properties and their (non null) values.
+     * <p>
+     * The result of this method is used by the {@link #getMessage()} method to print out these details after the error message.
+     *
+     * @return a String describing the internal state of the parser/writer.
+     */
+    protected abstract String getDetails();
 
-	public static Object[] restrictContent(int errorContentLength, Object[] content) {
-		if (content == null || errorContentLength == 0) {
-			return null;
-		 }
-		return content;
-	}
+    /**
+     * Returns a generic description of the error. The result of this method is used by {@link #getMessage()} to print out a general description of the error before a detailed message of the root cause.
+     *
+     * @return a generic description of the error.
+     */
+    protected abstract String getErrorDescription();
 
-	public void setErrorContentLength(int errorContentLength) {
-		this.errorContentLength = errorContentLength;
-		Throwable cause = this.getCause();
-		if(cause != null && cause instanceof AbstractException){
-			AbstractException e = ((AbstractException) cause);
-			if(e.errorContentLength != errorContentLength) { //prevents an unintended recursion cycle.
-				e.setErrorContentLength(errorContentLength);
-			}
-		}
-	}
+    public void setErrorContentLength(int errorContentLength) {
+        this.errorContentLength = errorContentLength;
+        Throwable cause = this.getCause();
+        if (cause != null && cause instanceof AbstractException) {
+            AbstractException e = ((AbstractException) cause);
+            if (e.errorContentLength != errorContentLength) { //prevents an unintended recursion cycle.
+                e.setErrorContentLength(errorContentLength);
+            }
+        }
+    }
 
-	protected String restrictContent(CharSequence content) {
-		return restrictContent(errorContentLength, content);
-	}
+    protected String restrictContent(CharSequence content) {
+        return restrictContent(errorContentLength, content);
+    }
 
-	protected String restrictContent(Object content) {
-		return ArgumentUtils.restrictContent(errorContentLength, content);
-	}
+    protected String restrictContent(Object content) {
+        return ArgumentUtils.restrictContent(errorContentLength, content);
+    }
 
-	protected Object[] restrictContent(Object[] content) {
-		return restrictContent(errorContentLength, content);
-	}
+    protected Object[] restrictContent(Object[] content) {
+        return restrictContent(errorContentLength, content);
+    }
 }

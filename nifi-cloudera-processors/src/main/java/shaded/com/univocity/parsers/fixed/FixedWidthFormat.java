@@ -33,74 +33,73 @@ import java.util.TreeMap;
  */
 public class FixedWidthFormat extends Format {
 
-	private char padding = ' ';
-	private char lookupWildcard = '?';
+    private char padding = ' ';
+    private char lookupWildcard = '?';
 
-	/**
-	 * Returns the padding character used to represent unwritten spaces. Defaults to ' '
-	 *
-	 * @return the padding character
-	 */
-	public char getPadding() {
-		return padding;
-	}
+    /**
+     * Returns the padding character used to represent unwritten spaces. Defaults to ' '
+     *
+     * @return the padding character
+     */
+    public char getPadding() {
+        return padding;
+    }
 
-	/**
-	 * Defines the padding character used to represent unwritten spaces. Defaults to ' '
-	 *
-	 * @param padding the padding character
-	 */
-	public void setPadding(char padding) {
-		this.padding = padding;
-	}
+    /**
+     * Defines the padding character used to represent unwritten spaces. Defaults to ' '
+     *
+     * @param padding the padding character
+     */
+    public void setPadding(char padding) {
+        this.padding = padding;
+    }
 
-	/**
-	 * Identifies whether or not a given character represents a padding character
-	 *
-	 * @param padding the character to be verified
-	 *
-	 * @return true if the given character is the padding character, false otherwise
-	 */
-	public boolean isPadding(char padding) {
-		return this.padding == padding;
-	}
+    /**
+     * Identifies whether or not a given character represents a padding character
+     *
+     * @param padding the character to be verified
+     * @return true if the given character is the padding character, false otherwise
+     */
+    public boolean isPadding(char padding) {
+        return this.padding == padding;
+    }
 
-	@Override
-	protected TreeMap<String, Object> getConfiguration() {
-		TreeMap<String, Object> out = new TreeMap<String, Object>();
-		out.put("Padding", padding);
-		return out;
-	}
+    @Override
+    protected TreeMap<String, Object> getConfiguration() {
+        TreeMap<String, Object> out = new TreeMap<String, Object>();
+        out.put("Padding", padding);
+        return out;
+    }
 
-	@Override
-	public final FixedWidthFormat clone() {
-		return (FixedWidthFormat) super.clone();
-	}
+    @Override
+    public final FixedWidthFormat clone() {
+        return (FixedWidthFormat) super.clone();
+    }
 
 
-	/**
-	 * Returns the lookup wildcard character to accept any character in look-ahead or look-behind patterns defined
-	 * using {@link FixedWidthParserSettings#addFormatForLookahead(String, FixedWidthFields)} or
-	 * {@link FixedWidthParserSettings#addFormatForLookbehind(String, FixedWidthFields)}.
-	 *
-	 * Defaults to {@code '?'}
-	 *
-	 * @return the wildcard character to be used in lookahead/behind patterns.
-	 */
-	public char getLookupWildcard() {
-		return lookupWildcard;
-	}
+    /**
+     * Returns the lookup wildcard character to accept any character in look-ahead or look-behind patterns defined
+     * using {@link FixedWidthParserSettings#addFormatForLookahead(String, FixedWidthFields)} or
+     * {@link FixedWidthParserSettings#addFormatForLookbehind(String, FixedWidthFields)}.
+     * <p>
+     * Defaults to {@code '?'}
+     *
+     * @return the wildcard character to be used in lookahead/behind patterns.
+     */
+    public char getLookupWildcard() {
+        return lookupWildcard;
+    }
 
-	/**
-	 * Defines the lookup wildcard character to accept any character in look-ahead or look-behind patterns defined
-	 * using {@link FixedWidthParserSettings#addFormatForLookahead(String, FixedWidthFields)} or
-	 * {@link FixedWidthParserSettings#addFormatForLookbehind(String, FixedWidthFields)}.
-	 *
-	 * Defaults to {@code '?'}
-	 *
-	 * @param lookupWildcard the wildcard character to be used in lookahead/behind patterns.
-	 */
-	public void setLookupWildcard(char lookupWildcard) {
-		this.lookupWildcard = lookupWildcard;
-	}
+    /**
+     * Defines the lookup wildcard character to accept any character in look-ahead or look-behind patterns defined
+     * using {@link FixedWidthParserSettings#addFormatForLookahead(String, FixedWidthFields)} or
+     * {@link FixedWidthParserSettings#addFormatForLookbehind(String, FixedWidthFields)}.
+     * <p>
+     * Defaults to {@code '?'}
+     *
+     * @param lookupWildcard the wildcard character to be used in lookahead/behind patterns.
+     */
+    public void setLookupWildcard(char lookupWildcard) {
+        this.lookupWildcard = lookupWildcard;
+    }
 }

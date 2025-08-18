@@ -23,12 +23,13 @@ package shaded.com.univocity.parsers.common;
  */
 public interface IterableResult<T, C extends Context> extends Iterable<T> {
 
-	/**
-	 * Returns the current parsing {@link Context}, if available
-	 * @return the contextual object with information about an ongoing parsing process
-	 */
-	C getContext();
+    /**
+     * Returns the current parsing {@link Context}, if available
+     *
+     * @return the contextual object with information about an ongoing parsing process
+     */
+    C getContext();
 
-	@Override
-	ResultIterator<T, C> iterator();
+    @Override
+    ResultIterator<T, C> iterator();
 }

@@ -25,62 +25,61 @@ import java.lang.reflect.Method;
  * @author Univocity Software Pty Ltd - <a href="mailto:dev@univocity.com">dev@univocity.com</a>
  */
 public enum MethodFilter {
-	/**
-	 * Rejects any method that returns {@code void} or has a parameter list.
-	 */
-	ONLY_GETTERS(new Filter() {
-		@Override
-		public boolean reject(Method method) {
-			return method.getReturnType() == void.class || method.getParameterTypes().length != 0;
-		}
-	}),
-	/**
-	 * Rejects any method that doesn't accept a single parameter.
-	 */
-	ONLY_SETTERS(new Filter() {
-		@Override
-		public boolean reject(Method method) {
-			return method.getParameterTypes().length != 1;
-		}
-	});
+    /**
+     * Rejects any method that returns {@code void} or has a parameter list.
+     */
+    ONLY_GETTERS(new Filter() {
+        @Override
+        public boolean reject(Method method) {
+            return method.getReturnType() == void.class || method.getParameterTypes().length != 0;
+        }
+    }),
+    /**
+     * Rejects any method that doesn't accept a single parameter.
+     */
+    ONLY_SETTERS(new Filter() {
+        @Override
+        public boolean reject(Method method) {
+            return method.getParameterTypes().length != 1;
+        }
+    });
 
 
-	private Filter filter;
+    private Filter filter;
 
-	MethodFilter(Filter filter) {
-		this.filter = filter;
-	}
+    MethodFilter(Filter filter) {
+        this.filter = filter;
+    }
 
-	/**
-	 * Tests whether a method is not a getter or setter and should be rejected.
-	 *
-	 * @param method the method to be tested
-	 *
-	 * @return {@code true} if the given method should be rejected, {@code false} otherwise
-	 */
-	public boolean reject(Method method) {
-		return filter.reject(method);
-	}
+    /**
+     * Tests whether a method is not a getter or setter and should be rejected.
+     *
+     * @param method the method to be tested
+     * @return {@code true} if the given method should be rejected, {@code false} otherwise
+     */
+    public boolean reject(Method method) {
+        return filter.reject(method);
+    }
 
-	private interface Filter {
-		boolean reject(Method method);
-	}
+    /**
+     * Creates a descriptor for a getter or setter method
+     *
+     * @param prefix a dot separated string denoting a path of nested object names
+     * @param method a actual class method to be associated with this prefix
+     * @return a descriptor for the given method
+     */
+    public MethodDescriptor toDescriptor(String prefix, Method method) {
+        if (reject(method)) {
+            return null;
+        }
+        if (this == MethodFilter.ONLY_SETTERS) {
+            return MethodDescriptor.setter(prefix, method);
+        } else {
+            return MethodDescriptor.getter(prefix, method);
+        }
+    }
 
-	/**
-	 * Creates a descriptor for a getter or setter method
-	 *
-	 * @param prefix a dot separated string denoting a path of nested object names
-	 * @param method a actual class method to be associated with this prefix
-	 * @return a descriptor for the given method
-	 */
-	public MethodDescriptor toDescriptor(String prefix, Method method) {
-		if (reject(method)) {
-			return null;
-		}
-		if (this == MethodFilter.ONLY_SETTERS) {
-			return MethodDescriptor.setter(prefix, method);
-		} else {
-			return MethodDescriptor.getter(prefix, method);
-		}
-	}
+    private interface Filter {
+        boolean reject(Method method);
+    }
 }

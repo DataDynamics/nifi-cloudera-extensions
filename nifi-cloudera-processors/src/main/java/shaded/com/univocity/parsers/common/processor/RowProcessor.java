@@ -15,7 +15,6 @@
  ******************************************************************************/
 package shaded.com.univocity.parsers.common.processor;
 
-import com.univocity.parsers.common.*;
 import shaded.com.univocity.parsers.common.*;
 import shaded.com.univocity.parsers.common.processor.core.Processor;
 import shaded.com.univocity.parsers.conversions.Conversion;
@@ -27,10 +26,10 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * delegate each parsed row to {@link RowProcessor#rowProcessed(String[], ParsingContext)}.
  *
  * <p>Before parsing the first row, the parser will invoke the {@link RowProcessor#processStarted(ParsingContext)} method.
- *    By this time the input buffer will be already loaded and ready to be consumed.
+ * By this time the input buffer will be already loaded and ready to be consumed.
  *
  * <p>After parsing the last row, all resources are closed and the processing stops. Only after the {@link RowProcessor#processEnded(ParsingContext)} is called so you
- *    can perform any additional housekeeping you might need.
+ * can perform any additional housekeeping you might need.
  *
  * <p>More control and information over the parsing process are provided by the {@link ParsingContext} object.
  *
@@ -46,40 +45,39 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * <li>{@link BeanListProcessor}: convenience class for storing all javabeans created by {@link BeanProcessor} into a list</li>
  * </ul>
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see CommonParserSettings
  * @see ParsingContext
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
 public interface RowProcessor extends Processor<ParsingContext> {
 
-	/**
-	 * This method will by invoked by the parser once, when it is ready to start processing the input.
-	 *
-	 * @param context A contextual object with information and controls over the current state of the parsing process
-	 */
-	void processStarted(ParsingContext context);
+    /**
+     * This method will by invoked by the parser once, when it is ready to start processing the input.
+     *
+     * @param context A contextual object with information and controls over the current state of the parsing process
+     */
+    void processStarted(ParsingContext context);
 
-	/**
-	 * Invoked by the parser after all values of a valid record have been processed.
-	 *
-	 * @param row the data extracted by the parser for an individual record. Note that:
-	 * <ul>
-	 * <li>it will never by null. </li>
-	 * <li>it will never be empty unless explicitly configured using {@link CommonSettings#setSkipEmptyLines(boolean)}</li>
-	 * <li>it won't contain lines identified by the parser as comments. To disable comment processing set {@link Format#setComment(char)} to '\0'</li>
-	 * </ul>
-	 * @param context A contextual object with information and controls over the current state of the parsing process
-	 */
-	void rowProcessed(String[] row, ParsingContext context);
+    /**
+     * Invoked by the parser after all values of a valid record have been processed.
+     *
+     * @param row     the data extracted by the parser for an individual record. Note that:
+     *                <ul>
+     *                <li>it will never by null. </li>
+     *                <li>it will never be empty unless explicitly configured using {@link CommonSettings#setSkipEmptyLines(boolean)}</li>
+     *                <li>it won't contain lines identified by the parser as comments. To disable comment processing set {@link Format#setComment(char)} to '\0'</li>
+     *                </ul>
+     * @param context A contextual object with information and controls over the current state of the parsing process
+     */
+    void rowProcessed(String[] row, ParsingContext context);
 
-	/**
-	 * This method will by invoked by the parser once, after the parsing process stopped and all resources were closed.
-	 * <p> It will always be called by the parser: in case of errors, if the end of the input us reached, or if the user stopped the process manually using {@link ParsingContext#stop()}.
-	 *
-	 * @param context A contextual object with information and controls over the state of the parsing process
-	 */
-	void processEnded(ParsingContext context);
+    /**
+     * This method will by invoked by the parser once, after the parsing process stopped and all resources were closed.
+     * <p> It will always be called by the parser: in case of errors, if the end of the input us reached, or if the user stopped the process manually using {@link ParsingContext#stop()}.
+     *
+     * @param context A contextual object with information and controls over the state of the parsing process
+     */
+    void processEnded(ParsingContext context);
 }

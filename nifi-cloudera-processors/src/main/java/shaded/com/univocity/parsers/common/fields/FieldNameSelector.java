@@ -30,59 +30,59 @@ import java.util.List;
  */
 public class FieldNameSelector extends FieldSet<String> implements FieldSelector, Cloneable {
 
-	/**
-	 * Returns the position of a given header
-	 *
-	 * @param header the header whose position will be returned
-	 * @return the position of the given header.
-	 */
-	public int getFieldIndex(String header) {
-		return getFieldIndexes(new NormalizedString[]{NormalizedString.valueOf(header)})[0];
-	}
+    /**
+     * Returns the position of a given header
+     *
+     * @param header the header whose position will be returned
+     * @return the position of the given header.
+     */
+    public int getFieldIndex(String header) {
+        return getFieldIndexes(new NormalizedString[]{NormalizedString.valueOf(header)})[0];
+    }
 
-	@Override
-	public int[] getFieldIndexes(NormalizedString[] headers) {
-		if (headers == null) {
-			return null;
-		}
-		NormalizedString[] normalizedHeader = headers;
-		List<NormalizedString> selection = NormalizedString.toArrayList(this.get());
+    @Override
+    public int[] getFieldIndexes(NormalizedString[] headers) {
+        if (headers == null) {
+            return null;
+        }
+        NormalizedString[] normalizedHeader = headers;
+        List<NormalizedString> selection = NormalizedString.toArrayList(this.get());
 
-		NormalizedString[] chosenFields = selection.toArray(new NormalizedString[0]);
-		Object[] unknownFields = ArgumentUtils.findMissingElements(normalizedHeader, chosenFields);
+        NormalizedString[] chosenFields = selection.toArray(new NormalizedString[0]);
+        Object[] unknownFields = ArgumentUtils.findMissingElements(normalizedHeader, chosenFields);
 
-		//if we get a subset of the expected columns, we can parse normally, considering missing column values as null.
-		if (unknownFields.length > 0 && !selection.containsAll(Arrays.asList(normalizedHeader))) {
-			//nothing matched, just return an empty array and proceed.
-			if (unknownFields.length == chosenFields.length) {
-				return new int[0];
-			}
-		}
+        //if we get a subset of the expected columns, we can parse normally, considering missing column values as null.
+        if (unknownFields.length > 0 && !selection.containsAll(Arrays.asList(normalizedHeader))) {
+            //nothing matched, just return an empty array and proceed.
+            if (unknownFields.length == chosenFields.length) {
+                return new int[0];
+            }
+        }
 
-		int[] out = new int[selection.size()];
-		Arrays.fill(out, -1);
-		int i = 0;
-		for (NormalizedString chosenField : selection) {
-			int[] indexes = ArgumentUtils.indexesOf(normalizedHeader, chosenField);
+        int[] out = new int[selection.size()];
+        Arrays.fill(out, -1);
+        int i = 0;
+        for (NormalizedString chosenField : selection) {
+            int[] indexes = ArgumentUtils.indexesOf(normalizedHeader, chosenField);
 
-			if (indexes.length > 1) {
-				out = Arrays.copyOf(out, out.length + indexes.length - 1);
-			}
+            if (indexes.length > 1) {
+                out = Arrays.copyOf(out, out.length + indexes.length - 1);
+            }
 
-			if (indexes.length != 0) {
-				for (int j = 0; j < indexes.length; j++) {
-					out[i++] = indexes[j];
-				}
-			} else {
-				i++;
-			}
-		}
+            if (indexes.length != 0) {
+                for (int j = 0; j < indexes.length; j++) {
+                    out[i++] = indexes[j];
+                }
+            } else {
+                i++;
+            }
+        }
 
-		return out;
-	}
+        return out;
+    }
 
-	@Override
-	public int[] getFieldIndexes(String[] headers) {
-		return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
-	}
+    @Override
+    public int[] getFieldIndexes(String[] headers) {
+        return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
+    }
 }

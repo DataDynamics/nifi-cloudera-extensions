@@ -26,29 +26,28 @@ import shaded.com.univocity.parsers.common.ParsingContext;
  */
 public class RecordFactory extends AbstractRecordFactory<Record, RecordMetaDataImpl> {
 
-	/**
-	 * Creates a new factory of {@link Record} based the state of a parser
-	 *
-	 * @param context            the parser context
-	 */
-	public RecordFactory(Context context) {
-		super(context);
-	}
+    /**
+     * Creates a new factory of {@link Record} based the state of a parser
+     *
+     * @param context the parser context
+     */
+    public RecordFactory(Context context) {
+        super(context);
+    }
 
-	/**
-	 * Creates a new {@link Record} with a row parsed from the input
-	 *
-	 * @param data the row parsed from the input
-	 *
-	 * @return a {@link Record} that provides many utility methods for consuming the data collected for a record parsed from the input.
-	 */
-	@Override
-	public Record newRecord(String[] data) {
-		return new RecordImpl(data, metaData);
-	}
+    /**
+     * Creates a new {@link Record} with a row parsed from the input
+     *
+     * @param data the row parsed from the input
+     * @return a {@link Record} that provides many utility methods for consuming the data collected for a record parsed from the input.
+     */
+    @Override
+    public Record newRecord(String[] data) {
+        return new RecordImpl(data, metaData);
+    }
 
-	@Override
-	public RecordMetaDataImpl createMetaData(Context context) {
-		return new RecordMetaDataImpl(context);
-	}
+    @Override
+    public RecordMetaDataImpl createMetaData(Context context) {
+        return new RecordMetaDataImpl(context);
+    }
 }

@@ -25,79 +25,79 @@ import shaded.com.univocity.parsers.common.record.RecordMetaData;
  */
 public abstract class ContextWrapper<T extends Context> implements Context {
 
-	protected final T context;
+    protected final T context;
 
-	/**
-	 * Wraps a {@link Context}.
-	 *
-	 * @param context the context object to be wrapped.
-	 */
-	public ContextWrapper(T context) {
-		this.context = context;
-	}
+    /**
+     * Wraps a {@link Context}.
+     *
+     * @param context the context object to be wrapped.
+     */
+    public ContextWrapper(T context) {
+        this.context = context;
+    }
 
-	@Override
-	public String[] headers() {
-		return context.headers();
-	}
+    @Override
+    public String[] headers() {
+        return context.headers();
+    }
 
-	@Override
-	public int[] extractedFieldIndexes() {
-		return context.extractedFieldIndexes();
-	}
+    @Override
+    public int[] extractedFieldIndexes() {
+        return context.extractedFieldIndexes();
+    }
 
-	@Override
-	public boolean columnsReordered() {
-		return context.columnsReordered();
-	}
+    @Override
+    public boolean columnsReordered() {
+        return context.columnsReordered();
+    }
 
-	@Override
-	public int indexOf(String header) {
-		return context.indexOf(header);
-	}
+    @Override
+    public int indexOf(String header) {
+        return context.indexOf(header);
+    }
 
-	@Override
-	public int indexOf(Enum<?> header) {
-		return context.indexOf(header);
-	}
+    @Override
+    public int indexOf(Enum<?> header) {
+        return context.indexOf(header);
+    }
 
-	@Override
-	public int currentColumn() {
-		return context.currentColumn();
-	}
+    @Override
+    public int currentColumn() {
+        return context.currentColumn();
+    }
 
-	@Override
-	public long currentRecord() {
-		return context.currentRecord();
-	}
+    @Override
+    public long currentRecord() {
+        return context.currentRecord();
+    }
 
-	@Override
-	public void stop() {
-		context.stop();
-	}
+    @Override
+    public void stop() {
+        context.stop();
+    }
 
-	@Override
-	public boolean isStopped() {
-		return context.isStopped();
-	}
+    @Override
+    public boolean isStopped() {
+        return context.isStopped();
+    }
 
-	@Override
-	public String[] selectedHeaders() {
-		return context.selectedHeaders();
-	}
+    @Override
+    public String[] selectedHeaders() {
+        return context.selectedHeaders();
+    }
 
-	@Override
-	public int errorContentLength() {
-		return context.errorContentLength();
-	}
+    @Override
+    public int errorContentLength() {
+        return context.errorContentLength();
+    }
 
-	@Override
-	public Record toRecord(String[] row) {
-		return context.toRecord(row);
-	}
+    @Override
+    public Record toRecord(String[] row) {
+        return context.toRecord(row);
+    }
 
-	@Override
-	public RecordMetaData recordMetaData() {
-		return context.recordMetaData();
-	}
+    @Override
+    public RecordMetaData recordMetaData() {
+        return context.recordMetaData();
+    }
 }

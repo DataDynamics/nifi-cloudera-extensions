@@ -30,26 +30,25 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractColumnProcesso
  * <p><b>Note:</b> Storing the values of all columns may be memory intensive. For large inputs, use a {@link BatchedColumnProcessor} instead</p>
  *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  * @see AbstractParser
  * @see RowProcessor
  */
 public class ColumnProcessor extends AbstractColumnProcessor<ParsingContext> implements RowProcessor {
 
 
+    /**
+     * Constructs a column processor, pre-allocating room for 1000 rows.
+     */
+    public ColumnProcessor() {
+        super(1000);
+    }
 
-	/**
-	 * Constructs a column processor, pre-allocating room for 1000 rows.
-	 */
-	public ColumnProcessor() {
-		super(1000);
-	}
-
-	/**
-	 * Constructs a column processor pre-allocating room for the expected number of rows to be processed
-	 * @param expectedRowCount the expected number of rows to be processed
-	 */
-	public ColumnProcessor(int expectedRowCount) {
-		super(expectedRowCount);
-	}
+    /**
+     * Constructs a column processor pre-allocating room for the expected number of rows to be processed
+     *
+     * @param expectedRowCount the expected number of rows to be processed
+     */
+    public ColumnProcessor(int expectedRowCount) {
+        super(expectedRowCount);
+    }
 }

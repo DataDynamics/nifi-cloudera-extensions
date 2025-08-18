@@ -19,28 +19,27 @@ package shaded.com.univocity.parsers.common;
  * An (singleton) implementation of {@link ProcessorErrorHandler} that simply rethrows any {@link DataProcessingException}
  * that comes into its {@link #handleError(DataProcessingException, Object[], Context)}} method
  *
- * @see ProcessorErrorHandler
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @param <T> the {@code Context} type provided by the parser implementation.
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
+ * @see ProcessorErrorHandler
  *
  */
 public final class NoopProcessorErrorHandler<T extends Context> implements ProcessorErrorHandler<T> {
 
-	public static final ProcessorErrorHandler instance = new NoopProcessorErrorHandler();
+    public static final ProcessorErrorHandler instance = new NoopProcessorErrorHandler();
 
-	private NoopProcessorErrorHandler() {
-	}
+    private NoopProcessorErrorHandler() {
+    }
 
-	/**
-	 * Rethrows the {@link DataProcessingException}
-	 *
-	 * @param error the exception thrown during the processing an input record. Will be rethrown to abort the parsing process.
-	 * @param inputRow ignored
-	 * @param context ignored
-	 */
-	@Override
-	public void handleError(DataProcessingException error, Object[] inputRow, T context) {
-		throw error;
-	}
+    /**
+     * Rethrows the {@link DataProcessingException}
+     *
+     * @param error    the exception thrown during the processing an input record. Will be rethrown to abort the parsing process.
+     * @param inputRow ignored
+     * @param context  ignored
+     */
+    @Override
+    public void handleError(DataProcessingException error, Object[] inputRow, T context) {
+        throw error;
+    }
 }

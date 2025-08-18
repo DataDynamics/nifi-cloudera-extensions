@@ -32,39 +32,38 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  *
  * <p> <b>Note</b> this class extends {@link ObjectRowProcessor} and value conversions provided by {@link Conversion} instances are fully supported.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see MasterDetailRecord
  * @see RowPlacement
  * @see AbstractParser
  * @see ObjectRowListProcessor
  * @see RowProcessor
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
 public abstract class MasterDetailProcessor extends AbstractMasterDetailProcessor<ParsingContext> {
 
-	/**
-	 * Creates a MasterDetailProcessor
-	 *
-	 * @param rowPlacement indication whether the master records are placed in relation its detail records in the input.
-	 *
-	 * <hr><blockquote><pre>
-	 *
-	 * Master record (Totals)       Master record (Totals)
-	 *  above detail records         under detail records
-	 *
-	 *    Totals | 100                 Item   | 60
-	 *    Item   | 60                  Item   | 40
-	 *    Item   | 40                  Totals | 100
-	 * </pre></blockquote><hr>
-	 * @param detailProcessor the {@link ObjectRowListProcessor} that processes detail rows.
-	 */
-	public MasterDetailProcessor(RowPlacement rowPlacement, ObjectRowListProcessor detailProcessor) {
-		super(rowPlacement, detailProcessor);
-	}
+    /**
+     * Creates a MasterDetailProcessor
+     *
+     * @param rowPlacement    indication whether the master records are placed in relation its detail records in the input.
+     *
+     *                        <hr><blockquote><pre>
+     *
+     *                        Master record (Totals)       Master record (Totals)
+     *                         above detail records         under detail records
+     *
+     *                           Totals | 100                 Item   | 60
+     *                           Item   | 60                  Item   | 40
+     *                           Item   | 40                  Totals | 100
+     *                        </pre></blockquote><hr>
+     * @param detailProcessor the {@link ObjectRowListProcessor} that processes detail rows.
+     */
+    public MasterDetailProcessor(RowPlacement rowPlacement, ObjectRowListProcessor detailProcessor) {
+        super(rowPlacement, detailProcessor);
+    }
 
-	public MasterDetailProcessor(ObjectRowListProcessor detailProcessor) {
-		super(RowPlacement.TOP, detailProcessor);
-	}
+    public MasterDetailProcessor(ObjectRowListProcessor detailProcessor) {
+        super(RowPlacement.TOP, detailProcessor);
+    }
 
 }

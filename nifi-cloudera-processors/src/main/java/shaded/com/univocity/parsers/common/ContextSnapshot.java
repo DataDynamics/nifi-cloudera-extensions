@@ -24,27 +24,28 @@ package shaded.com.univocity.parsers.common;
  */
 public abstract class ContextSnapshot<T extends Context> extends ContextWrapper<T> {
 
-	private final int currentColumn;
-	private final long currentRecord;
+    private final int currentColumn;
+    private final long currentRecord;
 
-	/**
-	 * Creates a snapshot of a given {@link Context}
-	 * @param context the context object whose variable attributes will be copied over.
-	 */
-	public ContextSnapshot(T context) {
-		super(context);
-		currentColumn = context.currentColumn();
-		currentRecord = context.currentRecord();
-	}
+    /**
+     * Creates a snapshot of a given {@link Context}
+     *
+     * @param context the context object whose variable attributes will be copied over.
+     */
+    public ContextSnapshot(T context) {
+        super(context);
+        currentColumn = context.currentColumn();
+        currentRecord = context.currentRecord();
+    }
 
-	@Override
-	public int currentColumn() {
-		return currentColumn;
-	}
+    @Override
+    public int currentColumn() {
+        return currentColumn;
+    }
 
-	@Override
-	public long currentRecord() {
-		return currentRecord;
-	}
+    @Override
+    public long currentRecord() {
+        return currentRecord;
+    }
 
 }

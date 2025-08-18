@@ -30,36 +30,36 @@ import shaded.com.univocity.parsers.common.NormalizedString;
 @SuppressWarnings("rawtypes")
 public class ExcludeFieldEnumSelector extends FieldSet<Enum> implements FieldSelector {
 
-	private ExcludeFieldNameSelector names = new ExcludeFieldNameSelector();
+    private ExcludeFieldNameSelector names = new ExcludeFieldNameSelector();
 
-	/**
-	 * Returns the indexes of any that are part of a sequence of headers but not part of the selection.
-	 *
-	 * @param headers the sequence of headers that might have some elements selected by this FieldSelector
-	 * @return the positions of all elements which were not selected.
-	 */
-	@Override
-	public int[] getFieldIndexes(NormalizedString[] headers) {
-		if(headers == null){
-			return null;
-		}
-		names.set(ArgumentUtils.toArray(this.get()));
-		return names.getFieldIndexes(headers);
-	}
+    /**
+     * Returns the indexes of any that are part of a sequence of headers but not part of the selection.
+     *
+     * @param headers the sequence of headers that might have some elements selected by this FieldSelector
+     * @return the positions of all elements which were not selected.
+     */
+    @Override
+    public int[] getFieldIndexes(NormalizedString[] headers) {
+        if (headers == null) {
+            return null;
+        }
+        names.set(ArgumentUtils.toArray(this.get()));
+        return names.getFieldIndexes(headers);
+    }
 
-	@Override
-	public String describe() {
-		return "undesired " + super.describe();
-	}
+    @Override
+    public String describe() {
+        return "undesired " + super.describe();
+    }
 
-	public ExcludeFieldEnumSelector clone(){
-		ExcludeFieldEnumSelector out = (ExcludeFieldEnumSelector) super.clone();
-		out.names = (ExcludeFieldNameSelector) names.clone();
-		return out;
-	}
+    public ExcludeFieldEnumSelector clone() {
+        ExcludeFieldEnumSelector out = (ExcludeFieldEnumSelector) super.clone();
+        out.names = (ExcludeFieldNameSelector) names.clone();
+        return out;
+    }
 
-	@Override
-	public int[] getFieldIndexes(String[] headers) {
-		return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
-	}
+    @Override
+    public int[] getFieldIndexes(String[] headers) {
+        return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
+    }
 }

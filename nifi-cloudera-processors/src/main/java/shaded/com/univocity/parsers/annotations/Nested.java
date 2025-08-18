@@ -30,25 +30,25 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface Nested {
 
-	/**
-	 * Defines the concrete type of nested object to be instantiated, if it has to be a subclass of the declared attribute type.
-	 *
-	 * @return the type of nested object to be instantiated.
-	 */
-	Class type() default Object.class;
+    /**
+     * Defines the concrete type of nested object to be instantiated, if it has to be a subclass of the declared attribute type.
+     *
+     * @return the type of nested object to be instantiated.
+     */
+    Class type() default Object.class;
 
-	/**
-	 * Provides a {@link HeaderTransformer} for reassigning header names/positions of the nested class.
-	 *
-	 * @return a transformation to be applied over headers/positions of the nested class.
-	 * Used for reassigning specific input columns so the correct values end up in the correct nested attributes.
-	 */
-	Class<? extends HeaderTransformer> headerTransformer() default HeaderTransformer.class;
+    /**
+     * Provides a {@link HeaderTransformer} for reassigning header names/positions of the nested class.
+     *
+     * @return a transformation to be applied over headers/positions of the nested class.
+     * Used for reassigning specific input columns so the correct values end up in the correct nested attributes.
+     */
+    Class<? extends HeaderTransformer> headerTransformer() default HeaderTransformer.class;
 
-	/**
-	 * An optional sequence of arguments for creating an instance of the given {@link #headerTransformer()}.
-	 *
-	 * @return the initialization arguments passed into the constructore of the {@link HeaderTransformer}
-	 */
-	String[] args() default {};
+    /**
+     * An optional sequence of arguments for creating an instance of the given {@link #headerTransformer()}.
+     *
+     * @return the initialization arguments passed into the constructore of the {@link HeaderTransformer}
+     */
+    String[] args() default {};
 }

@@ -26,36 +26,36 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * <p>This uses the value conversions provided by {@link Conversion} instances.</p>
  *
  * <p> For each row processed, a sequence of conversions will be executed to generate the appropriate object. Each resulting object will then be stored in
- * 	a list that contains the values of the corresponding column. </p>
+ * a list that contains the values of the corresponding column. </p>
  *
  * <p> At the end of the process, the user can access the lists with values parsed for all columns using the methods {@link #getColumnValuesAsList()},
  * {@link #getColumnValuesAsMapOfIndexes()} and {@link #getColumnValuesAsMapOfNames()}. </p>
  *
  * <p><b>Note:</b> Storing the values of all columns may be memory intensive. For large inputs, use a {@link BatchedObjectColumnProcessor} instead</p>
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see RowProcessor
  * @see ColumnProcessor
  * @see Conversion
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
 public class ObjectColumnProcessor extends AbstractObjectColumnProcessor<ParsingContext> implements RowProcessor {
 
-	/**
-	 * Constructs a column processor, pre-allocating room for 1000 rows.
-	 */
-	public ObjectColumnProcessor() {
-		this(1000);
-	}
+    /**
+     * Constructs a column processor, pre-allocating room for 1000 rows.
+     */
+    public ObjectColumnProcessor() {
+        this(1000);
+    }
 
-	/**
-	 * Constructs a column processor pre-allocating room for the expected number of rows to be processed
-	 * @param expectedRowCount the expected number of rows to be processed
-	 */
+    /**
+     * Constructs a column processor pre-allocating room for the expected number of rows to be processed
+     *
+     * @param expectedRowCount the expected number of rows to be processed
+     */
 
-	public ObjectColumnProcessor(int expectedRowCount) {
-		super(expectedRowCount);
-	}
+    public ObjectColumnProcessor(int expectedRowCount) {
+        super(expectedRowCount);
+    }
 }

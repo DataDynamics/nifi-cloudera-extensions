@@ -38,72 +38,73 @@ import java.util.List;
  *
  * </pre></blockquote><hr>
  *
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public abstract class AbstractListProcessor<T extends Context> implements Processor<T> {
 
-	private List<String[]> rows;
-	private String[] headers;
-	private final int expectedRowCount;
+    private final int expectedRowCount;
+    private List<String[]> rows;
+    private String[] headers;
 
-	/**
-	 * Creates a new processor of {@code String[]} rows.
-	 */
-	public AbstractListProcessor() {
-		this(0);
-	}
+    /**
+     * Creates a new processor of {@code String[]} rows.
+     */
+    public AbstractListProcessor() {
+        this(0);
+    }
 
-	/**
-	 * Creates a new processor of {@code String[]} rows.
-	 *
-	 * @param expectedRowCount expected number of rows to be parsed from the input.
-	 *                         Used to pre-allocate the size of the output {@link List} returned by {@link #getRows()}
-	 */
-	public AbstractListProcessor(int expectedRowCount) {
-		this.expectedRowCount = expectedRowCount <= 0 ? 10000 : expectedRowCount;
-	}
+    /**
+     * Creates a new processor of {@code String[]} rows.
+     *
+     * @param expectedRowCount expected number of rows to be parsed from the input.
+     *                         Used to pre-allocate the size of the output {@link List} returned by {@link #getRows()}
+     */
+    public AbstractListProcessor(int expectedRowCount) {
+        this.expectedRowCount = expectedRowCount <= 0 ? 10000 : expectedRowCount;
+    }
 
-	@Override
-	public void processStarted(T context) {
-		rows = new ArrayList<String[]>(expectedRowCount);
-	}
+    @Override
+    public void processStarted(T context) {
+        rows = new ArrayList<String[]>(expectedRowCount);
+    }
 
-	/**
-	 * Stores the row extracted by the parser into a list.
-	 *
-	 * @param row the data extracted by the parser for an individual record. Note that:
-	 * <ul>
-	 * <li>it will never by null. </li>
-	 * <li>it will never be empty unless explicitly configured using {@link CommonSettings#setSkipEmptyLines(boolean)}</li>
-	 * <li>it won't contain lines identified by the parser as comments. To disable comment processing set {@link Format#setComment(char)} to '\0'</li>
-	 * </ul>
-	 * @param context A contextual object with information and controls over the current state of the parsing process
-	 */
-	@Override
-	public void rowProcessed(String[] row, T context) {
-		rows.add(row);
-	}
+    /**
+     * Stores the row extracted by the parser into a list.
+     *
+     * @param row     the data extracted by the parser for an individual record. Note that:
+     *                <ul>
+     *                <li>it will never by null. </li>
+     *                <li>it will never be empty unless explicitly configured using {@link CommonSettings#setSkipEmptyLines(boolean)}</li>
+     *                <li>it won't contain lines identified by the parser as comments. To disable comment processing set {@link Format#setComment(char)} to '\0'</li>
+     *                </ul>
+     * @param context A contextual object with information and controls over the current state of the parsing process
+     */
+    @Override
+    public void rowProcessed(String[] row, T context) {
+        rows.add(row);
+    }
 
-	@Override
-	public void processEnded(T context) {
-		headers = context.headers();
-	}
+    @Override
+    public void processEnded(T context) {
+        headers = context.headers();
+    }
 
-	/**
-	 * The list of parsed records
-	 * @return the list of parsed records
-	 */
-	public List<String[]> getRows() {
-		return rows == null ? Collections.<String[]>emptyList() : rows;
-	}
+    /**
+     * The list of parsed records
+     *
+     * @return the list of parsed records
+     */
+    public List<String[]> getRows() {
+        return rows == null ? Collections.<String[]>emptyList() : rows;
+    }
 
-	/**
-	 * Returns the record headers. This can be either the headers defined in {@link CommonSettings#getHeaders()} or the headers parsed in the file when {@link CommonSettings#getHeaders()}  equals true
-	 * @return the headers of all records parsed.
-	 */
-	public String[] getHeaders() {
-		return headers;
-	}
+    /**
+     * Returns the record headers. This can be either the headers defined in {@link CommonSettings#getHeaders()} or the headers parsed in the file when {@link CommonSettings#getHeaders()}  equals true
+     *
+     * @return the headers of all records parsed.
+     */
+    public String[] getHeaders() {
+        return headers;
+    }
 }

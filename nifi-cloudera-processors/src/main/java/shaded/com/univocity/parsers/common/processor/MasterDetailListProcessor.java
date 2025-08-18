@@ -39,21 +39,20 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractObjectListProc
  * List&lt;MasterDetailRecord&gt; rows = masterRowProcessor.getRecords();
  * }</pre></blockquote><hr>
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see MasterDetailProcessor
  * @see RowProcessor
  * @see AbstractParser
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public abstract class MasterDetailListProcessor extends AbstractMasterDetailListProcessor<ParsingContext> implements RowProcessor {
 
 
-	public MasterDetailListProcessor(RowPlacement rowPlacement, AbstractObjectListProcessor detailProcessor) {
-		super(rowPlacement, detailProcessor);
-	}
+    public MasterDetailListProcessor(RowPlacement rowPlacement, AbstractObjectListProcessor detailProcessor) {
+        super(rowPlacement, detailProcessor);
+    }
 
-	public MasterDetailListProcessor(AbstractObjectListProcessor detailProcessor) {
-		super(detailProcessor);
-	}
+    public MasterDetailListProcessor(AbstractObjectListProcessor detailProcessor) {
+        super(detailProcessor);
+    }
 }

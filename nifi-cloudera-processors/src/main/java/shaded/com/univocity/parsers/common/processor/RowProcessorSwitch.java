@@ -25,7 +25,7 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractProcessorSwitc
  * are expected to implement the {@link #switchRowProcessor(String[], Context)} method and analyze the input row
  * to determine whether or not the current {@link RowProcessor} implementation must be changed to handle a special
  * circumstance (determined by the concrete implementation) such as a different row format.
- *
+ * <p>
  * When the row processor is switched, the {@link #rowProcessorSwitched(RowProcessor, RowProcessor)} will be called, and
  * must be overridden, to notify the change to the user.
  */

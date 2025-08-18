@@ -20,22 +20,21 @@ import java.util.TreeMap;
 /**
  * A concrete (dummy) implementation of {@code Format}. Used by {@link AbstractWriter} to manage its internal configuration of field selections
  *
- *  @see AbstractWriter
- *  @see CommonSettings
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
+ * @see AbstractWriter
+ * @see CommonSettings
  *
  */
 final class DummyFormat extends Format {
 
-	static final DummyFormat instance = new DummyFormat();
+    static final DummyFormat instance = new DummyFormat();
 
-	private DummyFormat() {
-	}
+    private DummyFormat() {
+    }
 
-	@Override
-	protected final TreeMap<String, Object> getConfiguration() {
-		return new TreeMap<String, Object>();
-	}
+    @Override
+    protected final TreeMap<String, Object> getConfiguration() {
+        return new TreeMap<String, Object>();
+    }
 
 }

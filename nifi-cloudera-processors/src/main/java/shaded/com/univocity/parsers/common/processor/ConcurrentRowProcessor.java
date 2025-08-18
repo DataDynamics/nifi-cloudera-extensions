@@ -32,37 +32,37 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractConcurrentProc
 public class ConcurrentRowProcessor extends AbstractConcurrentProcessor<ParsingContext> implements RowProcessor {
 
 
-	/**
-	 * Creates a non-blocking {@code ConcurrentRowProcessor}, to perform processing of rows parsed from the input in a separate thread.
-	 *
-	 * @param rowProcessor a regular {@link RowProcessor} implementation which will be executed in a separate thread.
-	 */
-	public ConcurrentRowProcessor(RowProcessor rowProcessor) {
-		super(rowProcessor);
-	}
+    /**
+     * Creates a non-blocking {@code ConcurrentRowProcessor}, to perform processing of rows parsed from the input in a separate thread.
+     *
+     * @param rowProcessor a regular {@link RowProcessor} implementation which will be executed in a separate thread.
+     */
+    public ConcurrentRowProcessor(RowProcessor rowProcessor) {
+        super(rowProcessor);
+    }
 
-	/**
-	 * Creates a blocking {@code ConcurrentRowProcessor}, to perform processing of rows parsed from the input in a separate thread.
-	 *
-	 * @param rowProcessor a regular {@link RowProcessor} implementation which will be executed in a separate thread.
-	 * @param limit        the limit of rows to be kept in memory before the input parsing process is blocked.
-	 */
-	public ConcurrentRowProcessor(RowProcessor rowProcessor, int limit) {
-		super(rowProcessor, limit);
-	}
+    /**
+     * Creates a blocking {@code ConcurrentRowProcessor}, to perform processing of rows parsed from the input in a separate thread.
+     *
+     * @param rowProcessor a regular {@link RowProcessor} implementation which will be executed in a separate thread.
+     * @param limit        the limit of rows to be kept in memory before the input parsing process is blocked.
+     */
+    public ConcurrentRowProcessor(RowProcessor rowProcessor, int limit) {
+        super(rowProcessor, limit);
+    }
 
-	@Override
-	protected ParsingContext copyContext(ParsingContext context) {
-		return new ParsingContextSnapshot(context);
-	}
+    @Override
+    protected ParsingContext copyContext(ParsingContext context) {
+        return new ParsingContextSnapshot(context);
+    }
 
-	@Override
-	protected ParsingContext wrapContext(ParsingContext context) {
-		return new ParsingContextWrapper(context) {
-			@Override
-			public long currentRecord() {
-				return getRowCount();
-			}
-		};
-	}
+    @Override
+    protected ParsingContext wrapContext(ParsingContext context) {
+        return new ParsingContextWrapper(context) {
+            @Override
+            public long currentRecord() {
+                return getRowCount();
+            }
+        };
+    }
 }

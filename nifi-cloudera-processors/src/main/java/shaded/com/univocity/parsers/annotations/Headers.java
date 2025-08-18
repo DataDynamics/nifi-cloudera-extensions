@@ -41,10 +41,9 @@ import java.lang.annotation.*;
  * 	This annotation has no effect if {@link CommonSettings#isAutoConfigurationEnabled()} evaluates to {@code false}.
  * </p>
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see BeanWriterProcessor
  * @see BeanProcessor
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -52,23 +51,25 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 public @interface Headers {
 
-	/**
-	 * Returns the sequence of header names in the input/output
-	 *
-	 * @return the sequence of header names in the input/output
-	 */
-	String[] sequence() default {};
+    /**
+     * Returns the sequence of header names in the input/output
+     *
+     * @return the sequence of header names in the input/output
+     */
+    String[] sequence() default {};
 
-	/**
-	 * Indicates whether a row with headers should be written to the output.
-	 * @return a flag indicating whether to write the headers to the output when writing instances of a java bean.
-	 */
-	boolean write() default true;
+    /**
+     * Indicates whether a row with headers should be written to the output.
+     *
+     * @return a flag indicating whether to write the headers to the output when writing instances of a java bean.
+     */
+    boolean write() default true;
 
-	/**
-	 * Indicates whether the first row of on the input should be extracted as a header row.
-	 * @return a flag indicating whether to extract the headers from the first valid row when reading. If
-	 */
-	boolean extract() default false;
+    /**
+     * Indicates whether the first row of on the input should be extracted as a header row.
+     *
+     * @return a flag indicating whether to extract the headers from the first valid row when reading. If
+     */
+    boolean extract() default false;
 
 }

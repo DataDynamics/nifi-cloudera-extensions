@@ -27,7 +27,7 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * <p>This uses the value conversions provided by {@link Conversion} instances.</p>
  *
  * <p> For each row processed, a sequence of conversions will be executed to generate the appropriate object. Each resulting object will then be stored in
- * 	a list that contains the values of the corresponding column. </p>
+ * a list that contains the values of the corresponding column. </p>
  *
  * <p> During the execution of the process, the {@link #batchProcessed(int)} method will be invoked after a given number of rows has been processed.</p>
  * <p> The user can access the lists with values parsed for all columns using the methods {@link #getColumnValuesAsList()},
@@ -35,23 +35,23 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * <p> After {@link #batchProcessed(int)} is invoked, all values will be discarded and the next batch of column values will be accumulated.
  * This process will repeat until there's no more rows in the input.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see RowProcessor
  * @see AbstractBatchedColumnProcessor
  * @see Conversion
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
 public abstract class BatchedObjectColumnProcessor extends AbstractBatchedObjectColumnProcessor<ParsingContext> implements RowProcessor {
 
 
-	/**
-	 * Constructs a batched column processor configured to invoke the {@link #batchesProcessed} method after a given number of rows has been processed.
-	 * @param rowsPerBatch the number of rows to process in each batch.
-	 */
-	public BatchedObjectColumnProcessor(int rowsPerBatch) {
-		super(rowsPerBatch);
-	}
+    /**
+     * Constructs a batched column processor configured to invoke the {@link #batchesProcessed} method after a given number of rows has been processed.
+     *
+     * @param rowsPerBatch the number of rows to process in each batch.
+     */
+    public BatchedObjectColumnProcessor(int rowsPerBatch) {
+        super(rowsPerBatch);
+    }
 
 }

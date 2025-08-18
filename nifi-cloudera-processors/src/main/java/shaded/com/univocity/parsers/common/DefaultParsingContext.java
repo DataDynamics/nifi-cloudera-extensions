@@ -30,80 +30,80 @@ import java.util.Map;
  */
 public class DefaultParsingContext extends DefaultContext implements ParsingContext {
 
-	private final CharInputReader input;
+    private final CharInputReader input;
 
-	private final AbstractParser<?> parser;
+    private final AbstractParser<?> parser;
 
 
-	public DefaultParsingContext(AbstractParser<?> parser, int errorContentLength) {
-		super(parser == null ? null : parser.output, errorContentLength);
-		this.parser = parser;
-		this.input = parser == null ? null : parser.input;
-	}
+    public DefaultParsingContext(AbstractParser<?> parser, int errorContentLength) {
+        super(parser == null ? null : parser.output, errorContentLength);
+        this.parser = parser;
+        this.input = parser == null ? null : parser.input;
+    }
 
-	@Override
-	public long currentLine() {
-		return input.lineCount();
-	}
+    @Override
+    public long currentLine() {
+        return input.lineCount();
+    }
 
-	@Override
-	public long currentChar() {
-		return input.charCount();
-	}
+    @Override
+    public long currentChar() {
+        return input.charCount();
+    }
 
-	@Override
-	public void skipLines(long lines) {
-		input.skipLines(lines);
-	}
+    @Override
+    public void skipLines(long lines) {
+        input.skipLines(lines);
+    }
 
-	@Override
-	public String fieldContentOnError() {
-		char[] chars = output.appender.getChars();
-		if (chars != null) {
-			int length = output.appender.length();
-			if (length > chars.length) {
-				length = chars.length;
-			}
-			if (length > 0) {
-				return new String(chars, 0, length);
-			}
-		}
-		return null;
-	}
+    @Override
+    public String fieldContentOnError() {
+        char[] chars = output.appender.getChars();
+        if (chars != null) {
+            int length = output.appender.length();
+            if (length > chars.length) {
+                length = chars.length;
+            }
+            if (length > 0) {
+                return new String(chars, 0, length);
+            }
+        }
+        return null;
+    }
 
-	@Override
-	public String currentParsedContent() {
-		if (input != null) {
-			return input.currentParsedContent();
-		}
-		return null;
-	}
+    @Override
+    public String currentParsedContent() {
+        if (input != null) {
+            return input.currentParsedContent();
+        }
+        return null;
+    }
 
-	@Override
-	public int currentParsedContentLength() {
-		if (input != null) {
-			return input.currentParsedContentLength();
-		}
-		return 0;
-	}
+    @Override
+    public int currentParsedContentLength() {
+        if (input != null) {
+            return input.currentParsedContentLength();
+        }
+        return 0;
+    }
 
-	@Override
-	public Map<Long, String> comments() {
-		return parser.getComments();
-	}
+    @Override
+    public Map<Long, String> comments() {
+        return parser.getComments();
+    }
 
-	@Override
-	public String lastComment() {
-		return parser.getLastComment();
-	}
+    @Override
+    public String lastComment() {
+        return parser.getLastComment();
+    }
 
-	@Override
-	public String[] parsedHeaders() {
-		return parser.getParsedHeaders();
-	}
+    @Override
+    public String[] parsedHeaders() {
+        return parser.getParsedHeaders();
+    }
 
-	@Override
-	public char[] lineSeparator() {
-		return input.getLineSeparator();
-	}
+    @Override
+    public char[] lineSeparator() {
+        return input.getLineSeparator();
+    }
 }

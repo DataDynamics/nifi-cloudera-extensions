@@ -35,20 +35,20 @@ import java.util.Map;
  * <p> Once all beans are populated from an individual input record, they will be sent to through the {@link AbstractMultiBeanRowProcessor#rowProcessed(Map, Context)} method,
  * where the user can access all beans parsed for that row.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see RowProcessor
  * @see BeanProcessor
  * @see MultiBeanProcessor
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
-public abstract class MultiBeanRowProcessor extends AbstractMultiBeanRowProcessor<ParsingContext> implements RowProcessor{
-	/**
-	 * Creates a processor for java beans of multiple types
-	 * @param beanTypes the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 */
-	public MultiBeanRowProcessor(Class... beanTypes) {
-		super(beanTypes);
-	}
+public abstract class MultiBeanRowProcessor extends AbstractMultiBeanRowProcessor<ParsingContext> implements RowProcessor {
+    /**
+     * Creates a processor for java beans of multiple types
+     *
+     * @param beanTypes the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     */
+    public MultiBeanRowProcessor(Class... beanTypes) {
+        super(beanTypes);
+    }
 }

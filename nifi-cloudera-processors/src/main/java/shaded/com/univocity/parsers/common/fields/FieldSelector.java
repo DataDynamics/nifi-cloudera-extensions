@@ -26,29 +26,33 @@ import shaded.com.univocity.parsers.common.NormalizedString;
  */
 public interface FieldSelector extends Cloneable {
 
-	/**
-	 * Returns the indexes of any selected fields that are part of a sequence of headers.
-	 * @param headers the sequence of headers that might have some elements selected by this FieldSelector
-	 * @return the positions of all selected elements in the given headers sequence.
-	 */
-	int[] getFieldIndexes(String[] headers);
+    /**
+     * Returns the indexes of any selected fields that are part of a sequence of headers.
+     *
+     * @param headers the sequence of headers that might have some elements selected by this FieldSelector
+     * @return the positions of all selected elements in the given headers sequence.
+     */
+    int[] getFieldIndexes(String[] headers);
 
-	/**
-	 * Returns the indexes of any selected fields that are part of a sequence of headers.
-	 * @param headers the sequence of headers that might have some elements selected by this FieldSelector
-	 * @return the positions of all selected elements in the given headers sequence.
-	 */
-	int[] getFieldIndexes(NormalizedString[] headers);
+    /**
+     * Returns the indexes of any selected fields that are part of a sequence of headers.
+     *
+     * @param headers the sequence of headers that might have some elements selected by this FieldSelector
+     * @return the positions of all selected elements in the given headers sequence.
+     */
+    int[] getFieldIndexes(NormalizedString[] headers);
 
-	/**
-	 * Returns a string that represents the current field selection
-	 * @return a string that represents the current field selection
-	 */
-	String describe();
+    /**
+     * Returns a string that represents the current field selection
+     *
+     * @return a string that represents the current field selection
+     */
+    String describe();
 
-	/**
-	 * Clones this field selector. Changes to the selection on the clone won't be reflected on the original
-	 * @return a copy of the current field selector.
-	 */
-	Object clone();
+    /**
+     * Clones this field selector. Changes to the selection on the clone won't be reflected on the original
+     *
+     * @return a copy of the current field selector.
+     */
+    Object clone();
 }

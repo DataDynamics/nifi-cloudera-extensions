@@ -33,39 +33,39 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  */
 public abstract class AbstractObjectProcessor<T extends Context> extends DefaultConversionProcessor implements Processor<T> {
 
-	/**
-	 * Executes the sequences of conversions defined using {@link DefaultConversionProcessor#convertFields(Conversion...)},
-	 * {@link DefaultConversionProcessor#convertIndexes(Conversion...)} and {@link DefaultConversionProcessor#convertAll(Conversion...)},
-	 * for every field in the given row.
-	 *
-	 * <p>Each field will be transformed using the {@link Conversion#execute(Object)} method.
-	 * <p>In general the conversions will process a String and convert it to some object value (such as booleans, dates, etc).
-	 *
-	 * @param row     the parsed record with its individual records as extracted from the original input.
-	 * @param context the current state of the parsing process.
-	 *                <p> Fields that do not have any conversion defined will just be copied to the object array into their original positions.
-	 */
-	@Override
-	public void rowProcessed(String[] row, T context) {
-		Object[] objectRow = applyConversions(row, context);
-		if (objectRow != null) {
-			rowProcessed(objectRow, context);
-		}
-	}
+    /**
+     * Executes the sequences of conversions defined using {@link DefaultConversionProcessor#convertFields(Conversion...)},
+     * {@link DefaultConversionProcessor#convertIndexes(Conversion...)} and {@link DefaultConversionProcessor#convertAll(Conversion...)},
+     * for every field in the given row.
+     *
+     * <p>Each field will be transformed using the {@link Conversion#execute(Object)} method.
+     * <p>In general the conversions will process a String and convert it to some object value (such as booleans, dates, etc).
+     *
+     * @param row     the parsed record with its individual records as extracted from the original input.
+     * @param context the current state of the parsing process.
+     *                <p> Fields that do not have any conversion defined will just be copied to the object array into their original positions.
+     */
+    @Override
+    public void rowProcessed(String[] row, T context) {
+        Object[] objectRow = applyConversions(row, context);
+        if (objectRow != null) {
+            rowProcessed(objectRow, context);
+        }
+    }
 
-	/**
-	 * Invoked by the processor after all values of a valid record have been processed and converted into an Object array.
-	 *
-	 * @param row     object array created with the information extracted by the parser and then converted.
-	 * @param context A contextual object with information and controls over the current state of the parsing process
-	 */
-	public abstract void rowProcessed(Object[] row, T context);
+    /**
+     * Invoked by the processor after all values of a valid record have been processed and converted into an Object array.
+     *
+     * @param row     object array created with the information extracted by the parser and then converted.
+     * @param context A contextual object with information and controls over the current state of the parsing process
+     */
+    public abstract void rowProcessed(Object[] row, T context);
 
-	@Override
-	public void processStarted(T context) {
-	}
+    @Override
+    public void processStarted(T context) {
+    }
 
-	@Override
-	public void processEnded(T context) {
-	}
+    @Override
+    public void processEnded(T context) {
+    }
 }

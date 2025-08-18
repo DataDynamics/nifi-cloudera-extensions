@@ -22,12 +22,12 @@ package shaded.com.univocity.parsers.common.processor;
  *
  */
 public enum RowPlacement {
-	/**
-	 * Indicates a row is above other rows.
-	 */
-	TOP,
-	/**
-	 * Indicates a row is below other rows.
-	 */
-	BOTTOM
+    /**
+     * Indicates a row is above other rows.
+     */
+    TOP,
+    /**
+     * Indicates a row is below other rows.
+     */
+    BOTTOM
 }

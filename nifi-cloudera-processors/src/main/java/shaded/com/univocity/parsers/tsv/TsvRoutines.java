@@ -25,58 +25,58 @@ import java.io.Writer;
  */
 public class TsvRoutines extends AbstractRoutines<TsvParserSettings, TsvWriterSettings> {
 
-	/**
-	 * Creates a new instance of the TSV routine class without any predefined parsing/writing configuration.
-	 */
-	public TsvRoutines() {
-		this(null, null);
-	}
+    /**
+     * Creates a new instance of the TSV routine class without any predefined parsing/writing configuration.
+     */
+    public TsvRoutines() {
+        this(null, null);
+    }
 
-	/**
-	 * Creates a new instance of the TSV routine class.
-	 *
-	 * @param parserSettings configuration to use for TSV parsing
-	 */
-	public TsvRoutines(TsvParserSettings parserSettings) {
-		this(parserSettings, null);
-	}
+    /**
+     * Creates a new instance of the TSV routine class.
+     *
+     * @param parserSettings configuration to use for TSV parsing
+     */
+    public TsvRoutines(TsvParserSettings parserSettings) {
+        this(parserSettings, null);
+    }
 
-	/**
-	 * Creates a new instance of the TSV routine class.
-	 *
-	 * @param writerSettings configuration to use for TSV writing
-	 */
-	public TsvRoutines(TsvWriterSettings writerSettings) {
-		this(null, writerSettings);
-	}
+    /**
+     * Creates a new instance of the TSV routine class.
+     *
+     * @param writerSettings configuration to use for TSV writing
+     */
+    public TsvRoutines(TsvWriterSettings writerSettings) {
+        this(null, writerSettings);
+    }
 
-	/**
-	 * Creates a new instance of the TSV routine class.
-	 *
-	 * @param parserSettings configuration to use for TSV parsing
-	 * @param writerSettings configuration to use for TSV writing
-	 */
-	public TsvRoutines(TsvParserSettings parserSettings, TsvWriterSettings writerSettings) {
-		super("TSV parsing/writing routine", parserSettings, writerSettings);
-	}
+    /**
+     * Creates a new instance of the TSV routine class.
+     *
+     * @param parserSettings configuration to use for TSV parsing
+     * @param writerSettings configuration to use for TSV writing
+     */
+    public TsvRoutines(TsvParserSettings parserSettings, TsvWriterSettings writerSettings) {
+        super("TSV parsing/writing routine", parserSettings, writerSettings);
+    }
 
-	@Override
-	protected TsvParser createParser(TsvParserSettings parserSettings) {
-		return new TsvParser(parserSettings);
-	}
+    @Override
+    protected TsvParser createParser(TsvParserSettings parserSettings) {
+        return new TsvParser(parserSettings);
+    }
 
-	@Override
-	protected TsvWriter createWriter(Writer output, TsvWriterSettings writerSettings) {
-		return new TsvWriter(output, writerSettings);
-	}
+    @Override
+    protected TsvWriter createWriter(Writer output, TsvWriterSettings writerSettings) {
+        return new TsvWriter(output, writerSettings);
+    }
 
-	@Override
-	protected TsvParserSettings createDefaultParserSettings() {
-		return new TsvParserSettings();
-	}
+    @Override
+    protected TsvParserSettings createDefaultParserSettings() {
+        return new TsvParserSettings();
+    }
 
-	@Override
-	protected TsvWriterSettings createDefaultWriterSettings() {
-		return new TsvWriterSettings();
-	}
+    @Override
+    protected TsvWriterSettings createDefaultWriterSettings() {
+        return new TsvWriterSettings();
+    }
 }

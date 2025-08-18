@@ -25,10 +25,10 @@ import shaded.com.univocity.parsers.common.processor.RowProcessor;
  */
 public interface ColumnOrderDependent {
 
-	/**
-	 * Returns a flag indicating whether or not columns should be reordered by the parser
-	 *
-	 * @return a flag indicating whether or not columns should be reordered by the parser
-	 */
-	boolean preventColumnReordering();
+    /**
+     * Returns a flag indicating whether or not columns should be reordered by the parser
+     *
+     * @return a flag indicating whether or not columns should be reordered by the parser
+     */
+    boolean preventColumnReordering();
 }

@@ -25,51 +25,51 @@ import java.io.Reader;
  */
 class LineReader extends Reader {
 
-	private String line;
-	private int length;
-	private int next = 0;
+    private String line;
+    private int length;
+    private int next = 0;
 
-	public LineReader() {
+    public LineReader() {
 
-	}
+    }
 
-	public void setLine(String line) {
-		this.line = line;
-		this.length = line.length();
-		this.next = 0;
-	}
+    public void setLine(String line) {
+        this.line = line;
+        this.length = line.length();
+        this.next = 0;
+    }
 
-	@Override
-	public int read(char cbuf[], int off, int len) {
-		if (len == 0) {
-			return 0;
-		}
-		if (next >= length) {
-			return -1;
-		}
-		int read = Math.min(length - next, len);
-		line.getChars(next, next + read, cbuf, off);
-		next += read;
-		return read;
-	}
+    @Override
+    public int read(char cbuf[], int off, int len) {
+        if (len == 0) {
+            return 0;
+        }
+        if (next >= length) {
+            return -1;
+        }
+        int read = Math.min(length - next, len);
+        line.getChars(next, next + read, cbuf, off);
+        next += read;
+        return read;
+    }
 
-	@Override
-	public long skip(long ns) {
-		return 0;
-	}
+    @Override
+    public long skip(long ns) {
+        return 0;
+    }
 
-	@Override
-	public boolean ready() {
-		return line != null;
-	}
+    @Override
+    public boolean ready() {
+        return line != null;
+    }
 
-	@Override
-	public boolean markSupported() {
-		return false;
-	}
+    @Override
+    public boolean markSupported() {
+        return false;
+    }
 
-	@Override
-	public void close() {
-		line = null;
-	}
+    @Override
+    public void close() {
+        line = null;
+    }
 }

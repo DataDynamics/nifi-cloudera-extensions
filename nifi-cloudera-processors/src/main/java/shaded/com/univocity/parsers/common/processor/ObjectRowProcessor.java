@@ -29,10 +29,9 @@ import shaded.com.univocity.parsers.conversions.Conversion;
  * <p> For each row processed, a sequence of conversions will be executed and stored in an object array, at its original position.
  * <p> The row with the result of these conversions will then be sent to the {@link ObjectRowProcessor#rowProcessed(Object[], Context)} method, where the user can access it.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see RowProcessor
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public abstract class ObjectRowProcessor extends AbstractObjectProcessor<ParsingContext> implements RowProcessor {

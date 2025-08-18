@@ -46,20 +46,20 @@ import java.util.List;
  */
 public class ObjectRowListProcessor extends AbstractObjectListProcessor<ParsingContext> implements RowProcessor {
 
-	/**
-	 * Creates a new processor of {@code Object[]} rows with varying types.
-	 */
-	public ObjectRowListProcessor() {
-	}
+    /**
+     * Creates a new processor of {@code Object[]} rows with varying types.
+     */
+    public ObjectRowListProcessor() {
+    }
 
-	/**
-	 * Creates a new processor of {@code Object[]} rows with varying types.
-	 *
-	 * @param expectedRowCount expected number of rows to be parsed from the input.
-	 *                         Used to pre-allocate the size of the output {@link List} returned by {@link #getRows()}
-	 */
-	public ObjectRowListProcessor(int expectedRowCount) {
-		super(expectedRowCount);
-	}
+    /**
+     * Creates a new processor of {@code Object[]} rows with varying types.
+     *
+     * @param expectedRowCount expected number of rows to be parsed from the input.
+     *                         Used to pre-allocate the size of the output {@link List} returned by {@link #getRows()}
+     */
+    public ObjectRowListProcessor(int expectedRowCount) {
+        super(expectedRowCount);
+    }
 
 }

@@ -25,15 +25,15 @@ import shaded.com.univocity.parsers.common.Context;
  */
 public abstract class AbstractProcessor<T extends Context> implements Processor<T> {
 
-	@Override
-	public void processStarted(T context) {
-	}
+    @Override
+    public void processStarted(T context) {
+    }
 
-	@Override
-	public void rowProcessed(String[] row, T context) {
-	}
+    @Override
+    public void rowProcessed(String[] row, T context) {
+    }
 
-	@Override
-	public void processEnded(T context) {
-	}
+    @Override
+    public void processEnded(T context) {
+    }
 }

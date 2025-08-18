@@ -36,7 +36,6 @@ import java.util.List;
  * }</pre></blockquote><hr>
  *
  * @param <T> the annotated class type.
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see BeanProcessor
  * @see RowProcessor
@@ -45,25 +44,25 @@ import java.util.List;
  */
 public class BeanListProcessor<T> extends AbstractBeanListProcessor<T, ParsingContext> implements RowProcessor {
 
-	/**
-	 * Creates a processor that stores java beans of a given type into a list
-	 *
-	 * @param beanType the class with its attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 */
-	public BeanListProcessor(Class<T> beanType) {
-		super(beanType);
-	}
+    /**
+     * Creates a processor that stores java beans of a given type into a list
+     *
+     * @param beanType the class with its attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     */
+    public BeanListProcessor(Class<T> beanType) {
+        super(beanType);
+    }
 
-	/**
-	 * Creates a processor that stores java beans of a given type into a list
-	 *
-	 * @param beanType          the class with its attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 * @param expectedBeanCount expected number of rows to be parsed from the input which will be converted into java beans.
-	 *                          Used to pre-allocate the size of the output {@link List}
-	 *                          returned by {@link #getBeans()}
-	 */
-	public BeanListProcessor(Class<T> beanType, int expectedBeanCount) {
-		super(beanType, expectedBeanCount);
-	}
+    /**
+     * Creates a processor that stores java beans of a given type into a list
+     *
+     * @param beanType          the class with its attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     * @param expectedBeanCount expected number of rows to be parsed from the input which will be converted into java beans.
+     *                          Used to pre-allocate the size of the output {@link List}
+     *                          returned by {@link #getBeans()}
+     */
+    public BeanListProcessor(Class<T> beanType, int expectedBeanCount) {
+        super(beanType, expectedBeanCount);
+    }
 
 }

@@ -25,18 +25,18 @@ import shaded.com.univocity.parsers.common.Format;
  */
 public interface CharInput {
 
-	/**
-	 * Returns the next character in the input.
-	 *
-	 * @return the next character in the input. '\0' if there are no more characters in the input or if the CharInput is stopped.
-	 */
-	char nextChar();
+    /**
+     * Returns the next character in the input.
+     *
+     * @return the next character in the input. '\0' if there are no more characters in the input or if the CharInput is stopped.
+     */
+    char nextChar();
 
-	/**
-	 * Returns the last character returned by the {@link #nextChar()} method.
-	 *
-	 * @return the last character returned by the {@link #nextChar()} method.'\0' if there are no more characters in the input or if the CharInput is stopped.
-	 */
-	char getChar();
+    /**
+     * Returns the last character returned by the {@link #nextChar()} method.
+     *
+     * @return the last character returned by the {@link #nextChar()} method.'\0' if there are no more characters in the input or if the CharInput is stopped.
+     */
+    char getChar();
 
 }

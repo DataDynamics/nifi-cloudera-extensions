@@ -28,87 +28,87 @@ import shaded.com.univocity.parsers.common.AbstractParser;
  */
 public class TsvParser extends AbstractParser<TsvParserSettings> {
 
-	private final boolean joinLines;
+    private final boolean joinLines;
 
-	private final char newLine;
-	private final char escapeChar;
-	private final char escapedTabChar;
+    private final char newLine;
+    private final char escapeChar;
+    private final char escapedTabChar;
 
-	/**
-	 * The TsvParser supports all settings provided by {@link TsvParserSettings}, and requires this configuration to be properly initialized.
-	 *
-	 * @param settings the parser configuration
-	 */
-	public TsvParser(TsvParserSettings settings) {
-		super(settings);
-		joinLines = settings.isLineJoiningEnabled();
+    /**
+     * The TsvParser supports all settings provided by {@link TsvParserSettings}, and requires this configuration to be properly initialized.
+     *
+     * @param settings the parser configuration
+     */
+    public TsvParser(TsvParserSettings settings) {
+        super(settings);
+        joinLines = settings.isLineJoiningEnabled();
 
-		TsvFormat format = settings.getFormat();
-		newLine = format.getNormalizedNewline();
-		escapeChar = settings.getFormat().getEscapeChar();
-		escapedTabChar = format.getEscapedTabChar();
-	}
+        TsvFormat format = settings.getFormat();
+        newLine = format.getNormalizedNewline();
+        escapeChar = settings.getFormat().getEscapeChar();
+        escapedTabChar = format.getEscapedTabChar();
+    }
 
-	@Override
-	protected void initialize() {
-		output.trim = ignoreTrailingWhitespace;
-	}
+    @Override
+    protected void initialize() {
+        output.trim = ignoreTrailingWhitespace;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void parseRecord() {
-		if (ignoreLeadingWhitespace && ch != '\t' && ch <= ' ' && whitespaceRangeStart < ch) {
-			ch = input.skipWhitespace(ch, '\t', escapeChar);
-		}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void parseRecord() {
+        if (ignoreLeadingWhitespace && ch != '\t' && ch <= ' ' && whitespaceRangeStart < ch) {
+            ch = input.skipWhitespace(ch, '\t', escapeChar);
+        }
 
-		while (ch != newLine) {
-			parseField();
-			if (ch != newLine) {
-				ch = input.nextChar();
-				if (ch == newLine) {
-					output.emptyParsed();
-				}
-			}
-		}
-	}
+        while (ch != newLine) {
+            parseField();
+            if (ch != newLine) {
+                ch = input.nextChar();
+                if (ch == newLine) {
+                    output.emptyParsed();
+                }
+            }
+        }
+    }
 
-	private void parseField() {
-		if (ignoreLeadingWhitespace && ch != '\t' && ch <= ' ' && whitespaceRangeStart < ch) {
-			ch = input.skipWhitespace(ch, '\t', escapeChar);
-		}
+    private void parseField() {
+        if (ignoreLeadingWhitespace && ch != '\t' && ch <= ' ' && whitespaceRangeStart < ch) {
+            ch = input.skipWhitespace(ch, '\t', escapeChar);
+        }
 
-		if (ch == '\t') {
-			output.emptyParsed();
-		} else {
-			while (ch != '\t' && ch != newLine) {
-				if (ch == escapeChar) {
-					ch = input.nextChar();
-					if (ch == 't' || ch == escapedTabChar) {
-						output.appender.append('\t');
-					} else if (ch == 'n') {
-						output.appender.append('\n');
-					} else if (ch == '\\') {
-						output.appender.append('\\');
-					} else if (ch == 'r') {
-						output.appender.append('\r');
-					} else if (ch == newLine && joinLines) {
-						output.appender.append(newLine);
-					} else {
-						output.appender.append(escapeChar);
-						if (ch == newLine || ch == '\t') {
-							break;
-						}
-						output.appender.append(ch);
-					}
-					ch = input.nextChar();
-				} else {
-					ch = output.appender.appendUntil(ch, input, '\t', escapeChar, newLine);
-				}
-			}
+        if (ch == '\t') {
+            output.emptyParsed();
+        } else {
+            while (ch != '\t' && ch != newLine) {
+                if (ch == escapeChar) {
+                    ch = input.nextChar();
+                    if (ch == 't' || ch == escapedTabChar) {
+                        output.appender.append('\t');
+                    } else if (ch == 'n') {
+                        output.appender.append('\n');
+                    } else if (ch == '\\') {
+                        output.appender.append('\\');
+                    } else if (ch == 'r') {
+                        output.appender.append('\r');
+                    } else if (ch == newLine && joinLines) {
+                        output.appender.append(newLine);
+                    } else {
+                        output.appender.append(escapeChar);
+                        if (ch == newLine || ch == '\t') {
+                            break;
+                        }
+                        output.appender.append(ch);
+                    }
+                    ch = input.nextChar();
+                } else {
+                    ch = output.appender.appendUntil(ch, input, '\t', escapeChar, newLine);
+                }
+            }
 
-			output.valueParsed();
-		}
-	}
+            output.valueParsed();
+        }
+    }
 }

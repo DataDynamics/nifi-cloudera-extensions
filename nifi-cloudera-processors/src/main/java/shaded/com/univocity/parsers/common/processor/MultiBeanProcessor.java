@@ -32,20 +32,20 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractMultiBeanProce
  * <p> Each individual instance will then be sent to the {@link MultiBeanProcessor#beanProcessed(Class, Object, Context)} method, where the user can access the
  * beans parsed for each row.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see RowProcessor
  * @see BeanProcessor
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
-public abstract class MultiBeanProcessor extends AbstractMultiBeanProcessor<ParsingContext> implements RowProcessor{
+public abstract class MultiBeanProcessor extends AbstractMultiBeanProcessor<ParsingContext> implements RowProcessor {
 
-	/**
-	 * Creates a processor for java beans of multiple types
-	 * @param beanTypes the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 */
-	public MultiBeanProcessor(Class ... beanTypes){
-		super(beanTypes);
-	}
+    /**
+     * Creates a processor for java beans of multiple types
+     *
+     * @param beanTypes the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     */
+    public MultiBeanProcessor(Class... beanTypes) {
+        super(beanTypes);
+    }
 }

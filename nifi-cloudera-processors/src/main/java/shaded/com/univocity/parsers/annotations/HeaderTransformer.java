@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
  *     int miles;
  * }
  *  </code></pre></blockquote><hr>
- *
+ * <p>
  * And a {@code Car} which has four {@code Wheels}:
  *
  * <hr><blockquote><pre><code>
@@ -51,10 +51,10 @@ import java.lang.reflect.Method;
  * 		Wheel rearRight;
  * }
  *  </code></pre></blockquote><hr>
- *
+ * <p>
  * The {@code HeaderTransformer} allows us to "rename" the attributes of each different {@code Wheel} of the {@code Car}
  * so that input columns can be assigned to the appropriate places.
- *
+ * <p>
  * Assuming an input with headers {@code frontLeftWheelBrand,frontLeftWheelMiles,frontRightWheelBrand,frontRightWheelMiles,rearLeftWheelBrand,rearLeftWheelMiles,rearRightWheelBrand,rearRightWheelMiles},
  * a {@code HeaderTransformer} can be created like this to assign a prefix in front of the header names derived from {@code Wheel} (originally just "brand" and "miles"):
  *
@@ -73,7 +73,7 @@ import java.lang.reflect.Method;
  *        }
  * }
  * </code></pre></blockquote><hr>
- *
+ * <p>
  * This allows us to to define the {@code Car} class as:
  *
  * <hr><blockquote><pre><code>
@@ -91,7 +91,7 @@ import java.lang.reflect.Method;
  * 		Wheel rearRight;
  * }
  * </code></pre></blockquote><hr>
- *
+ * <p>
  * The above annotation will prefix the {@code frontLeft} fields ("brand" and "miles") with "frontLeftWheel", effectively
  * forming the header "frontLeftWheelBrand" and "frontLeftWheelMiles", which will match the input headers and assign the
  * correct values to the correct {@code Wheel} instance.
@@ -103,67 +103,63 @@ import java.lang.reflect.Method;
  */
 public abstract class HeaderTransformer {
 
-	public final String transformName(AnnotatedElement element, String name) {
-		if (element instanceof Field) {
-			return transformName((Field) element, name);
-		} else {
-			return transformName((Method) element, name);
-		}
-	}
+    public final String transformName(AnnotatedElement element, String name) {
+        if (element instanceof Field) {
+            return transformName((Field) element, name);
+        } else {
+            return transformName((Method) element, name);
+        }
+    }
 
-	public final int transformIndex(AnnotatedElement element, int index) {
-		if (element instanceof Field) {
-			return transformIndex((Field) element, index);
-		} else {
-			return transformIndex((Method) element, index);
-		}
-	}
+    public final int transformIndex(AnnotatedElement element, int index) {
+        if (element instanceof Field) {
+            return transformIndex((Field) element, index);
+        } else {
+            return transformIndex((Method) element, index);
+        }
+    }
 
-	/**
-	 * Transforms a header name
-	 *
-	 * @param field the field of a {@link Nested} class whose header will be transformed
-	 * @param name  the current header name associated with the field of the {@link Nested} class
-	 *
-	 * @return the transformed header name to be used to read/write values from/to the given field.
-	 */
-	public String transformName(Field field, String name) {
-		return name;
-	}
+    /**
+     * Transforms a header name
+     *
+     * @param field the field of a {@link Nested} class whose header will be transformed
+     * @param name  the current header name associated with the field of the {@link Nested} class
+     * @return the transformed header name to be used to read/write values from/to the given field.
+     */
+    public String transformName(Field field, String name) {
+        return name;
+    }
 
-	/**
-	 * Transforms a header index
-	 *
-	 * @param field the field of a {@link Nested} class whose header will be transformed
-	 * @param index the current column position associated with the field of the {@link Nested} class
-	 *
-	 * @return the transformed position to be used to read/write values from/to the given field.
-	 */
-	public int transformIndex(Field field, int index) {
-		return index;
-	}
+    /**
+     * Transforms a header index
+     *
+     * @param field the field of a {@link Nested} class whose header will be transformed
+     * @param index the current column position associated with the field of the {@link Nested} class
+     * @return the transformed position to be used to read/write values from/to the given field.
+     */
+    public int transformIndex(Field field, int index) {
+        return index;
+    }
 
-	/**
-	 * Transforms a header name
-	 *
-	 * @param method the method of a {@link Nested} class whose header will be transformed
-	 * @param name   the current header name associated with the method of the {@link Nested} class
-	 *
-	 * @return the transformed header name to be used to read/write values from/to the given method.
-	 */
-	public String transformName(Method method, String name) {
-		return name;
-	}
+    /**
+     * Transforms a header name
+     *
+     * @param method the method of a {@link Nested} class whose header will be transformed
+     * @param name   the current header name associated with the method of the {@link Nested} class
+     * @return the transformed header name to be used to read/write values from/to the given method.
+     */
+    public String transformName(Method method, String name) {
+        return name;
+    }
 
-	/**
-	 * Transforms a header index
-	 *
-	 * @param method the method of a {@link Nested} class whose header will be transformed
-	 * @param index  the current column position associated with the method of the {@link Nested} class
-	 *
-	 * @return the transformed position to be used to read/write values from/to the given method.
-	 */
-	public int transformIndex(Method method, int index) {
-		return index;
-	}
+    /**
+     * Transforms a header index
+     *
+     * @param method the method of a {@link Nested} class whose header will be transformed
+     * @param index  the current column position associated with the method of the {@link Nested} class
+     * @return the transformed position to be used to read/write values from/to the given method.
+     */
+    public int transformIndex(Method method, int index) {
+        return index;
+    }
 }

@@ -30,50 +30,49 @@ import shaded.com.univocity.parsers.common.NormalizedString;
  * <p> This instance will then be sent to the {@link AbstractBeanProcessor#beanProcessed(Object, Context)} method, where the user can access it.
  *
  * @param <T> the annotated class type.
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractParser
  * @see Processor
  */
 public abstract class AbstractBeanProcessor<T, C extends Context> extends BeanConversionProcessor<T> implements Processor<C> {
 
-	/**
-	 * Creates a processor for java beans of a given type.
-	 *
-	 * @param beanType     the class with its attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 * @param methodFilter filter to apply over annotated methods when the processor is reading data from beans (to write values to an output)
-	 *                     or writing values into beans (when parsing). It is used to choose either a "get" or a "set"
-	 *                     method annotated with {@link Parsed}, when both methods target the same field.
-	 */
-	public AbstractBeanProcessor(Class<T> beanType, MethodFilter methodFilter) {
-		super(beanType, methodFilter);
-	}
+    /**
+     * Creates a processor for java beans of a given type.
+     *
+     * @param beanType     the class with its attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     * @param methodFilter filter to apply over annotated methods when the processor is reading data from beans (to write values to an output)
+     *                     or writing values into beans (when parsing). It is used to choose either a "get" or a "set"
+     *                     method annotated with {@link Parsed}, when both methods target the same field.
+     */
+    public AbstractBeanProcessor(Class<T> beanType, MethodFilter methodFilter) {
+        super(beanType, methodFilter);
+    }
 
-	/**
-	 * Converts a parsed row to a java object
-	 */
-	@Override
-	public final void rowProcessed(String[] row, C context) {
-		T instance = createBean(row, context);
-		if (instance != null) {
-			beanProcessed(instance, context);
-		}
-	}
+    /**
+     * Converts a parsed row to a java object
+     */
+    @Override
+    public final void rowProcessed(String[] row, C context) {
+        T instance = createBean(row, context);
+        if (instance != null) {
+            beanProcessed(instance, context);
+        }
+    }
 
-	/**
-	 * Invoked by the processor after all values of a valid record have been processed and converted into a java object.
-	 *
-	 * @param bean    java object created with the information extracted by the parser for an individual record.
-	 * @param context A contextual object with information and controls over the current state of the parsing process
-	 */
-	public abstract void beanProcessed(T bean, C context);
+    /**
+     * Invoked by the processor after all values of a valid record have been processed and converted into a java object.
+     *
+     * @param bean    java object created with the information extracted by the parser for an individual record.
+     * @param context A contextual object with information and controls over the current state of the parsing process
+     */
+    public abstract void beanProcessed(T bean, C context);
 
-	@Override
-	public void processStarted(C context) {
-		super.initialize(NormalizedString.toArray(context.headers()));
-	}
+    @Override
+    public void processStarted(C context) {
+        super.initialize(NormalizedString.toArray(context.headers()));
+    }
 
-	@Override
-	public void processEnded(C context) {
-	}
+    @Override
+    public void processEnded(C context) {
+    }
 }

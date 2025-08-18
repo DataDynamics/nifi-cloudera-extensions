@@ -20,12 +20,12 @@ package shaded.com.univocity.parsers.common.processor;
  */
 public final class NoopRowProcessor extends AbstractRowProcessor {
 
-	/**
-	 * The singleton instance of the no-op {@link RowProcessor}
-	 */
-	public static final RowProcessor instance = new NoopRowProcessor();
+    /**
+     * The singleton instance of the no-op {@link RowProcessor}
+     */
+    public static final RowProcessor instance = new NoopRowProcessor();
 
-	private NoopRowProcessor() {
-	}
+    private NoopRowProcessor() {
+    }
 
 }

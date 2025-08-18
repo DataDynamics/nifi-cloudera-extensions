@@ -27,71 +27,72 @@ import java.util.Map;
  */
 public class ParsingContextWrapper extends ContextWrapper<ParsingContext> implements ParsingContext {
 
-	/**
-	 * Wraps a {@link ParsingContext}.
-	 * @param context the parsingContext object to be wrapped.
-	 */
-	public ParsingContextWrapper(ParsingContext context) {
-		super(context);
-	}
+    /**
+     * Wraps a {@link ParsingContext}.
+     *
+     * @param context the parsingContext object to be wrapped.
+     */
+    public ParsingContextWrapper(ParsingContext context) {
+        super(context);
+    }
 
-	@Override
-	public long currentLine() {
-		return context.currentLine();
-	}
+    @Override
+    public long currentLine() {
+        return context.currentLine();
+    }
 
-	@Override
-	public long currentChar() {
-		return context.currentChar();
-	}
+    @Override
+    public long currentChar() {
+        return context.currentChar();
+    }
 
-	@Override
-	public void skipLines(long lines) {
-		context.skipLines(lines);
-	}
+    @Override
+    public void skipLines(long lines) {
+        context.skipLines(lines);
+    }
 
-	@Override
-	public String currentParsedContent() {
-		return context.currentParsedContent();
-	}
+    @Override
+    public String currentParsedContent() {
+        return context.currentParsedContent();
+    }
 
-	@Override
-	public int currentParsedContentLength() {
-		return context.currentParsedContentLength();
-	}
+    @Override
+    public int currentParsedContentLength() {
+        return context.currentParsedContentLength();
+    }
 
-	@Override
-	public Map<Long, String> comments() {
-		return context.comments();
-	}
+    @Override
+    public Map<Long, String> comments() {
+        return context.comments();
+    }
 
-	@Override
-	public String lastComment() {
-		return context.lastComment();
-	}
+    @Override
+    public String lastComment() {
+        return context.lastComment();
+    }
 
-	@Override
-	public String[] parsedHeaders() {
-		return context.parsedHeaders();
-	}
+    @Override
+    public String[] parsedHeaders() {
+        return context.parsedHeaders();
+    }
 
-	@Override
-	public char[] lineSeparator() {
-		return context.lineSeparator();
-	}
+    @Override
+    public char[] lineSeparator() {
+        return context.lineSeparator();
+    }
 
-	@Override
-	public String fieldContentOnError() {
-		return context.fieldContentOnError();
-	}
+    @Override
+    public String fieldContentOnError() {
+        return context.fieldContentOnError();
+    }
 
-	@Override
-	public String[] selectedHeaders() {
-		return context.selectedHeaders();
-	}
+    @Override
+    public String[] selectedHeaders() {
+        return context.selectedHeaders();
+    }
 
-	@Override
-	public Record toRecord(String[] row) {
-		return context.toRecord(row);
-	}
+    @Override
+    public Record toRecord(String[] row) {
+        return context.toRecord(row);
+    }
 }

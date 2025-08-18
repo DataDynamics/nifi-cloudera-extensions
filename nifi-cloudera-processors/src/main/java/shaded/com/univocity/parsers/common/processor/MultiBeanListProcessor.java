@@ -40,23 +40,23 @@ import java.util.List;
  */
 public class MultiBeanListProcessor extends AbstractMultiBeanListProcessor<ParsingContext> implements RowProcessor {
 
-	/**
-	 * Creates a processor for java beans of multiple types
-	 *
-	 * @param expectedBeanCount expected number of rows to be parsed from the input which will be converted into java beans.
-	 *                          Used to pre-allocate the size of the output {@link List} returned by {@link #getBeans()}
-	 * @param beanTypes         the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 */
-	public MultiBeanListProcessor(int expectedBeanCount, Class... beanTypes) {
-		super(expectedBeanCount, beanTypes);
-	}
+    /**
+     * Creates a processor for java beans of multiple types
+     *
+     * @param expectedBeanCount expected number of rows to be parsed from the input which will be converted into java beans.
+     *                          Used to pre-allocate the size of the output {@link List} returned by {@link #getBeans()}
+     * @param beanTypes         the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     */
+    public MultiBeanListProcessor(int expectedBeanCount, Class... beanTypes) {
+        super(expectedBeanCount, beanTypes);
+    }
 
-	/**
-	 * Creates a processor for java beans of multiple types
-	 *
-	 * @param beanTypes the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
-	 */
-	public MultiBeanListProcessor(Class... beanTypes) {
-		super(beanTypes);
-	}
+    /**
+     * Creates a processor for java beans of multiple types
+     *
+     * @param beanTypes the classes with their attributes mapped to fields of records parsed by an {@link AbstractParser} or written by an {@link AbstractWriter}.
+     */
+    public MultiBeanListProcessor(Class... beanTypes) {
+        super(beanTypes);
+    }
 }

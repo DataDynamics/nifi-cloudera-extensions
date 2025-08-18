@@ -20,17 +20,17 @@ package shaded.com.univocity.parsers.common.input;
  */
 public final class EOFException extends RuntimeException {
 
-	private static final long serialVersionUID = -4064380464076294133L;
+    private static final long serialVersionUID = -4064380464076294133L;
 
-	/**
-	 * Creates a new exception
-	 */
-	public EOFException() {
-		super();
-	}
+    /**
+     * Creates a new exception
+     */
+    public EOFException() {
+        super();
+    }
 
-	@Override
-	public Throwable fillInStackTrace() {
-		return this;
-	}
+    @Override
+    public Throwable fillInStackTrace() {
+        return this;
+    }
 }

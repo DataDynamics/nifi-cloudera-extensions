@@ -21,23 +21,23 @@ package shaded.com.univocity.parsers.conversions;
  */
 public class ToStringConversion extends NullConversion<Object, Object> {
 
-	public ToStringConversion() {
-	}
+    public ToStringConversion() {
+    }
 
-	public ToStringConversion(Object valueOnNullInput, Object valueOnNullOutput) {
-		super(valueOnNullInput, valueOnNullOutput);
-	}
+    public ToStringConversion(Object valueOnNullInput, Object valueOnNullOutput) {
+        super(valueOnNullInput, valueOnNullOutput);
+    }
 
-	@Override
-	protected Object fromInput(Object input) {
-		if (input != null) {
-			return input.toString();
-		}
-		return null;
-	}
+    @Override
+    protected Object fromInput(Object input) {
+        if (input != null) {
+            return input.toString();
+        }
+        return null;
+    }
 
-	@Override
-	protected Object undo(Object input) {
-		return execute(input);
-	}
+    @Override
+    protected Object undo(Object input) {
+        return execute(input);
+    }
 }

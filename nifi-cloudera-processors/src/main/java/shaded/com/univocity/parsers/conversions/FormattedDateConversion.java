@@ -35,51 +35,50 @@ import java.util.Locale;
  */
 public class FormattedDateConversion implements Conversion<Object, String> {
 
-	private final SimpleDateFormat dateFormat;
-	private final String valueIfObjectIsNull;
+    private final SimpleDateFormat dateFormat;
+    private final String valueIfObjectIsNull;
 
-	/**
-	 *
-	 * @param format The pattern to be used to convert an input date into a String in {@link FormattedDateConversion#execute(Object)}.
-	 * @param locale the {@link Locale} that determines how the date mask should be formatted.
-	 * @param valueIfObjectIsNull default String value to be returned when an input is {@code null} . Used when {@link FormattedDateConversion#execute(Object)} is invoked with a {@code null} parameter.
-	 */
-	public FormattedDateConversion(String format, Locale locale, String valueIfObjectIsNull) {
-		this.valueIfObjectIsNull = valueIfObjectIsNull;
-		locale = locale == null ? Locale.getDefault() : locale;
-		this.dateFormat = new SimpleDateFormat(format, locale);
-	}
+    /**
+     *
+     * @param format              The pattern to be used to convert an input date into a String in {@link FormattedDateConversion#execute(Object)}.
+     * @param locale              the {@link Locale} that determines how the date mask should be formatted.
+     * @param valueIfObjectIsNull default String value to be returned when an input is {@code null} . Used when {@link FormattedDateConversion#execute(Object)} is invoked with a {@code null} parameter.
+     */
+    public FormattedDateConversion(String format, Locale locale, String valueIfObjectIsNull) {
+        this.valueIfObjectIsNull = valueIfObjectIsNull;
+        locale = locale == null ? Locale.getDefault() : locale;
+        this.dateFormat = new SimpleDateFormat(format, locale);
+    }
 
-	@Override
-	public String execute(Object input) {
-		if (input == null) {
-			return valueIfObjectIsNull;
-		}
-		Date date = null;
-		if (input instanceof Date) {
-			date = ((Date) input);
-		} else if (input instanceof Calendar) {
-			date = ((Calendar) input).getTime();
-		}
+    @Override
+    public String execute(Object input) {
+        if (input == null) {
+            return valueIfObjectIsNull;
+        }
+        Date date = null;
+        if (input instanceof Date) {
+            date = ((Date) input);
+        } else if (input instanceof Calendar) {
+            date = ((Calendar) input).getTime();
+        }
 
-		if (date != null) {
-			return dateFormat.format(date);
-		}
+        if (date != null) {
+            return dateFormat.format(date);
+        }
 
-		DataProcessingException exception = new DataProcessingException("Cannot format '{value}' to a date. Not an instance of java.util.Date or java.util.Calendar");
-		exception.setValue(input);
-		throw exception;
-	}
+        DataProcessingException exception = new DataProcessingException("Cannot format '{value}' to a date. Not an instance of java.util.Date or java.util.Calendar");
+        exception.setValue(input);
+        throw exception;
+    }
 
-	/**
-	 * Unsupported operation.
-	 *
-	 * @param input the input be converted.
-	 *
-	 * @return throws a {@code UnsupportedOperationException}
-	 */
-	@Override
-	public Object revert(String input) {
-		throw new UnsupportedOperationException("Can't convert an input string into date type");
-	}
+    /**
+     * Unsupported operation.
+     *
+     * @param input the input be converted.
+     * @return throws a {@code UnsupportedOperationException}
+     */
+    @Override
+    public Object revert(String input) {
+        throw new UnsupportedOperationException("Can't convert an input string into date type");
+    }
 }

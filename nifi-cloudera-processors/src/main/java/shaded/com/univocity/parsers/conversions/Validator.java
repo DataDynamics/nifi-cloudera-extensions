@@ -25,16 +25,16 @@ import shaded.com.univocity.parsers.annotations.Validate;
  */
 public interface Validator<T> {
 
-	/**
-	 * Executes the required validations over a given value, returning
-	 * any validation error messages that are applicable.
-	 *
-	 * If no validation errors are found, returns a blank {@code String} or {@code null}
-	 *
-	 * @param value the value to be validated
-	 * @return a validation error message if the given value fails the validation process.
-	 *         If the value is acceptable this method can return either a blank {@code String} or {@code null}
-	 */
-	String validate(T value);
+    /**
+     * Executes the required validations over a given value, returning
+     * any validation error messages that are applicable.
+     * <p>
+     * If no validation errors are found, returns a blank {@code String} or {@code null}
+     *
+     * @param value the value to be validated
+     * @return a validation error message if the given value fails the validation process.
+     * If the value is acceptable this method can return either a blank {@code String} or {@code null}
+     */
+    String validate(T value);
 }
 

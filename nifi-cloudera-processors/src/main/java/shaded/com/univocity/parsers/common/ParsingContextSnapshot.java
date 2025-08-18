@@ -27,63 +27,63 @@ import java.util.Map;
  */
 public class ParsingContextSnapshot extends ParsingContextWrapper {
 
-	private final long currentLine;
-	private final long currentChar;
-	private final Map<Long, String> comments;
-	private final String lastComment;
-	private final int currentColumn;
-	private final String currentParsedContent;
-	private final long currentRecord;
+    private final long currentLine;
+    private final long currentChar;
+    private final Map<Long, String> comments;
+    private final String lastComment;
+    private final int currentColumn;
+    private final String currentParsedContent;
+    private final long currentRecord;
 
-	/**
-	 * Creates a snapshot of a given {@link Context}
-	 *
-	 * @param context the context object whose variable attributes will be copied over.
-	 */
-	public ParsingContextSnapshot(ParsingContext context) {
-		super(context);
-		currentLine = context.currentLine();
-		currentChar = context.currentChar();
-		comments = context.comments() == Collections.EMPTY_MAP ? Collections.<Long, String>emptyMap() : Collections.unmodifiableMap(context.comments());
-		lastComment = context.lastComment();
-		currentColumn = context.currentColumn();
-		currentParsedContent = context.currentParsedContent();
-		currentRecord = context.currentRecord();
-	}
+    /**
+     * Creates a snapshot of a given {@link Context}
+     *
+     * @param context the context object whose variable attributes will be copied over.
+     */
+    public ParsingContextSnapshot(ParsingContext context) {
+        super(context);
+        currentLine = context.currentLine();
+        currentChar = context.currentChar();
+        comments = context.comments() == Collections.EMPTY_MAP ? Collections.<Long, String>emptyMap() : Collections.unmodifiableMap(context.comments());
+        lastComment = context.lastComment();
+        currentColumn = context.currentColumn();
+        currentParsedContent = context.currentParsedContent();
+        currentRecord = context.currentRecord();
+    }
 
 
-	@Override
-	public long currentLine() {
-		return currentLine;
-	}
+    @Override
+    public long currentLine() {
+        return currentLine;
+    }
 
-	@Override
-	public long currentChar() {
-		return currentChar;
-	}
+    @Override
+    public long currentChar() {
+        return currentChar;
+    }
 
-	@Override
-	public Map<Long, String> comments() {
-		return comments;
-	}
+    @Override
+    public Map<Long, String> comments() {
+        return comments;
+    }
 
-	@Override
-	public String lastComment() {
-		return lastComment;
-	}
+    @Override
+    public String lastComment() {
+        return lastComment;
+    }
 
-	@Override
-	public int currentColumn() {
-		return currentColumn;
-	}
+    @Override
+    public int currentColumn() {
+        return currentColumn;
+    }
 
-	@Override
-	public String currentParsedContent() {
-		return currentParsedContent;
-	}
+    @Override
+    public String currentParsedContent() {
+        return currentParsedContent;
+    }
 
-	@Override
-	public long currentRecord() {
-		return currentRecord;
-	}
+    @Override
+    public long currentRecord() {
+        return currentRecord;
+    }
 }

@@ -28,12 +28,11 @@ import java.lang.annotation.*;
  *
  * <p>Commonly used for java beans processed using {@link BeanProcessor} and/or {@link BeanWriterProcessor}
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see Conversion
  * @see Conversions
  * @see BeanProcessor
  * @see BeanWriterProcessor
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -41,5 +40,5 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface Trim {
 
-	int length() default -1;
+    int length() default -1;
 }

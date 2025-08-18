@@ -27,12 +27,12 @@ import java.io.File;
  */
 public abstract class RowIterator extends ParserIterator<String[]> {
 
-	public RowIterator(AbstractParser parser) {
-		super(parser);
-	}
+    public RowIterator(AbstractParser parser) {
+        super(parser);
+    }
 
-	@Override
-	protected final String[] nextResult() {
-		return parser.parseNext();
-	}
+    @Override
+    protected final String[] nextResult() {
+        return parser.parseNext();
+    }
 }

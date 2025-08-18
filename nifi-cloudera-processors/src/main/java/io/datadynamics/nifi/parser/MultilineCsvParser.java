@@ -152,8 +152,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             .build();
 
     public static final PropertyDescriptor FIXED_SIZE_COLUMN = new PropertyDescriptor.Builder()
-            .name("컬럼의 크기가 고정 크기시 컬럼의 문자수")
-            .description("컬럼의 크기가 고정 크기로 되어 있는 컬럼의 경우 컬럼의 문자수를 검증합니다. " +
+            .name("전체 컬럼의 길이의 합")
+            .description("각 컬럼의 크기(bytes)의 합이 일치하는지 검증합니다." +
                     "단, UTF로 가정하지 않고 Character의 개수를 검증하도록 합니다.")
             .required(false)
             .defaultValue("0")

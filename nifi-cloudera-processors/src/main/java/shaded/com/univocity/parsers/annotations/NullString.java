@@ -28,12 +28,11 @@ import java.lang.annotation.*;
  * <p>A {@link NullStringConversion}  will be assigned to this field
  * <p>Commonly used for java beans processed using {@link BeanProcessor} and/or {@link BeanWriterProcessor}
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see Conversion
  * @see Conversions
  * @see BeanProcessor
  * @see BeanWriterProcessor
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 
@@ -41,9 +40,10 @@ import java.lang.annotation.*;
 @Inherited
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface NullString {
-	/**
-	 * A set of Strings that represent a null value instead of a valid String (e.g. "?", "empty", "null" )
-	 * @return Strings that represent {@code null}
-	 */
-	String[] nulls();
+    /**
+     * A set of Strings that represent a null value instead of a valid String (e.g. "?", "empty", "null" )
+     *
+     * @return Strings that represent {@code null}
+     */
+    String[] nulls();
 }

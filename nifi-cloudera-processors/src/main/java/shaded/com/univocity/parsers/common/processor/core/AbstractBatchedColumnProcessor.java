@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * A {@link Processor} implementation that stores values of columns in batches. Use this implementation in favor of {@link AbstractColumnProcessor}
  * when processing large inputs to avoid running out of memory.
- *
+ * <p>
  * Values parsed in each row will be split into columns of Strings. Each column has its own list of values.
  *
  * <p> During the execution of the process, the {@link #batchProcessed(int)} method will be invoked after a given number of rows has been processed.</p>
@@ -34,105 +34,105 @@ import java.util.Map;
  * This process will repeat until there's no more rows in the input.
  *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  * @see AbstractParser
  * @see BatchedColumnReader
  * @see Processor
  */
 public abstract class AbstractBatchedColumnProcessor<T extends Context> implements Processor<T>, BatchedColumnReader<String> {
 
-	private final ColumnSplitter<String> splitter;
-	private final int rowsPerBatch;
-	private int batchCount;
-	private int batchesProcessed;
+    private final ColumnSplitter<String> splitter;
+    private final int rowsPerBatch;
+    private int batchCount;
+    private int batchesProcessed;
 
-	/**
-	 * Constructs a batched column processor configured to invoke the {@link #batchesProcessed} method after a given number of rows has been processed.
-	 * @param rowsPerBatch the number of rows to process in each batch.
-	 */
-	public AbstractBatchedColumnProcessor(int rowsPerBatch) {
-		splitter = new ColumnSplitter<String>(rowsPerBatch);
-		this.rowsPerBatch = rowsPerBatch;
-	}
+    /**
+     * Constructs a batched column processor configured to invoke the {@link #batchesProcessed} method after a given number of rows has been processed.
+     *
+     * @param rowsPerBatch the number of rows to process in each batch.
+     */
+    public AbstractBatchedColumnProcessor(int rowsPerBatch) {
+        splitter = new ColumnSplitter<String>(rowsPerBatch);
+        this.rowsPerBatch = rowsPerBatch;
+    }
 
-	@Override
-	public void processStarted(T context) {
-		splitter.reset();
-		batchCount = 0;
-		batchesProcessed = 0;
-	}
+    @Override
+    public void processStarted(T context) {
+        splitter.reset();
+        batchCount = 0;
+        batchesProcessed = 0;
+    }
 
-	@Override
-	public void rowProcessed(String[] row, T context) {
-		splitter.addValuesToColumns(row, context);
-		batchCount++;
+    @Override
+    public void rowProcessed(String[] row, T context) {
+        splitter.addValuesToColumns(row, context);
+        batchCount++;
 
-		if (batchCount >= rowsPerBatch) {
-			batchProcessed(batchCount);
-			batchCount = 0;
-			splitter.clearValues();
-			batchesProcessed++;
-		}
-	}
+        if (batchCount >= rowsPerBatch) {
+            batchProcessed(batchCount);
+            batchCount = 0;
+            splitter.clearValues();
+            batchesProcessed++;
+        }
+    }
 
-	@Override
-	public void processEnded(T context) {
-		if (batchCount > 0) {
-			batchProcessed(batchCount);
-		}
-	}
+    @Override
+    public void processEnded(T context) {
+        if (batchCount > 0) {
+            batchProcessed(batchCount);
+        }
+    }
 
-	@Override
-	public final String[] getHeaders() {
-		return splitter.getHeaders();
-	}
+    @Override
+    public final String[] getHeaders() {
+        return splitter.getHeaders();
+    }
 
-	@Override
-	public final List<List<String>> getColumnValuesAsList() {
-		return splitter.getColumnValues();
-	}
+    @Override
+    public final List<List<String>> getColumnValuesAsList() {
+        return splitter.getColumnValues();
+    }
 
-	@Override
-	public final void putColumnValuesInMapOfNames(Map<String, List<String>> map) {
-		splitter.putColumnValuesInMapOfNames(map);
-	}
+    @Override
+    public final void putColumnValuesInMapOfNames(Map<String, List<String>> map) {
+        splitter.putColumnValuesInMapOfNames(map);
+    }
 
-	@Override
-	public final void putColumnValuesInMapOfIndexes(Map<Integer, List<String>> map) {
-		splitter.putColumnValuesInMapOfIndexes(map);
-	}
+    @Override
+    public final void putColumnValuesInMapOfIndexes(Map<Integer, List<String>> map) {
+        splitter.putColumnValuesInMapOfIndexes(map);
+    }
 
-	@Override
-	public final Map<String, List<String>> getColumnValuesAsMapOfNames() {
-		return splitter.getColumnValuesAsMapOfNames();
-	}
+    @Override
+    public final Map<String, List<String>> getColumnValuesAsMapOfNames() {
+        return splitter.getColumnValuesAsMapOfNames();
+    }
 
-	@Override
-	public final Map<Integer, List<String>> getColumnValuesAsMapOfIndexes() {
-		return splitter.getColumnValuesAsMapOfIndexes();
-	}
+    @Override
+    public final Map<Integer, List<String>> getColumnValuesAsMapOfIndexes() {
+        return splitter.getColumnValuesAsMapOfIndexes();
+    }
 
-	@Override
-	public List<String> getColumn(String columnName) {
-		return splitter.getColumnValues(columnName, String.class);
-	}
+    @Override
+    public List<String> getColumn(String columnName) {
+        return splitter.getColumnValues(columnName, String.class);
+    }
 
-	@Override
-	public List<String> getColumn(int columnIndex) {
-		return splitter.getColumnValues(columnIndex, String.class);
-	}
+    @Override
+    public List<String> getColumn(int columnIndex) {
+        return splitter.getColumnValues(columnIndex, String.class);
+    }
 
-	@Override
-	public int getRowsPerBatch() {
-		return rowsPerBatch;
-	}
+    @Override
+    public int getRowsPerBatch() {
+        return rowsPerBatch;
+    }
 
-	@Override
-	public int getBatchesProcessed() {
-		return batchesProcessed;
-	}
+    @Override
+    public int getBatchesProcessed() {
+        return batchesProcessed;
+    }
 
-	@Override
-	public abstract void batchProcessed(int rowsInThisBatch);
+    @Override
+    public abstract void batchProcessed(int rowsInThisBatch);
 
 }

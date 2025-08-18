@@ -22,7 +22,7 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractBatchedColumnP
 /**
  * A {@link RowProcessor} implementation that stores values of columns in batches. Use this implementation in favor of {@link ColumnProcessor}
  * when processing large inputs to avoid running out of memory.
- *
+ * <p>
  * Values parsed in each row will be split into columns of Strings. Each column has its own list of values.
  *
  * <p> During the execution of the process, the {@link #batchProcessed(int)} method will be invoked after a given number of rows has been processed.</p>
@@ -32,20 +32,20 @@ import shaded.com.univocity.parsers.common.processor.core.AbstractBatchedColumnP
  * This process will repeat until there's no more rows in the input.
  *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  * @see AbstractParser
  * @see RowProcessor
  * @see AbstractBatchedColumnProcessor
  */
 public abstract class BatchedColumnProcessor extends AbstractBatchedColumnProcessor<ParsingContext> implements RowProcessor {
 
-	/**
-	 * Constructs a batched column processor configured to invoke the {@link #batchesProcessed} method after a given number of rows has been processed.
-	 * @param rowsPerBatch the number of rows to process in each batch.
-	 */
-	public BatchedColumnProcessor(int rowsPerBatch) {
-		super(rowsPerBatch);
-	}
+    /**
+     * Constructs a batched column processor configured to invoke the {@link #batchesProcessed} method after a given number of rows has been processed.
+     *
+     * @param rowsPerBatch the number of rows to process in each batch.
+     */
+    public BatchedColumnProcessor(int rowsPerBatch) {
+        super(rowsPerBatch);
+    }
 
 
 }

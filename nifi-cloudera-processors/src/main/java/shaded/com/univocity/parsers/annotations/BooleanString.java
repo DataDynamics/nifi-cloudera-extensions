@@ -40,17 +40,17 @@ import java.lang.annotation.*;
 @Inherited
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface BooleanString {
-	/**
-	 * A set of Strings that represent the boolean value {@code true} (e.g. "y", "yes", "1")
-	 *
-	 * @return Strings that represent {@code true}
-	 */
-	String[] trueStrings();
+    /**
+     * A set of Strings that represent the boolean value {@code true} (e.g. "y", "yes", "1")
+     *
+     * @return Strings that represent {@code true}
+     */
+    String[] trueStrings();
 
-	/**
-	 * A set of Strings that represent the boolean value {@code false} (e.g. "n", "no", "0")
-	 *
-	 * @return Strings that represent {@code false}
-	 */
-	String[] falseStrings();
+    /**
+     * A set of Strings that represent the boolean value {@code false} (e.g. "n", "no", "0")
+     *
+     * @return Strings that represent {@code false}
+     */
+    String[] falseStrings();
 }

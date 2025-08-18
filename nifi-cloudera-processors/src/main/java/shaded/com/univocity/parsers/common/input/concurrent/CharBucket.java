@@ -26,57 +26,61 @@ import java.util.Arrays;
  *
  */
 class CharBucket {
-	/**
-	 * The bucket data
-	 */
-	final char[] data;
+    /**
+     * The bucket data
+     */
+    final char[] data;
 
-	/**
-	 * The number of characters this bucket contain. It is modified every time {@link CharBucket#fill(Reader)} is called.
-	 */
-	int length = -1;
+    /**
+     * The number of characters this bucket contain. It is modified every time {@link CharBucket#fill(Reader)} is called.
+     */
+    int length = -1;
 
-	/**
-	 * Creates a bucket capable of holding a fixed number of characters
-	 * @param bucketSize the maximum capacity of the bucket
-	 */
-	public CharBucket(int bucketSize) {
-		if (bucketSize > 0) {
-			data = new char[bucketSize];
-		} else {
-			data = new char[0];
-		}
-	}
+    /**
+     * Creates a bucket capable of holding a fixed number of characters
+     *
+     * @param bucketSize the maximum capacity of the bucket
+     */
+    public CharBucket(int bucketSize) {
+        if (bucketSize > 0) {
+            data = new char[bucketSize];
+        } else {
+            data = new char[0];
+        }
+    }
 
-	/**
-	 * Creates a bucket capable of holding a fixed number of characters
-	 * @param bucketSize the maximum capacity of the bucket
-	 * @param fillWith a character used to fill all positions of the bucket.
-	 */
-	public CharBucket(int bucketSize, char fillWith) {
-		this(bucketSize);
-		if (bucketSize > 0) {
-			Arrays.fill(data, fillWith);
-		}
-	}
+    /**
+     * Creates a bucket capable of holding a fixed number of characters
+     *
+     * @param bucketSize the maximum capacity of the bucket
+     * @param fillWith   a character used to fill all positions of the bucket.
+     */
+    public CharBucket(int bucketSize, char fillWith) {
+        this(bucketSize);
+        if (bucketSize > 0) {
+            Arrays.fill(data, fillWith);
+        }
+    }
 
-	/**
-	 * Fills the bucket with the characters take from a {@link Reader}
-	 * <p> The {@link CharBucket#length} attribute will be updated with the number of characters extracted
-	 * @param reader the source of characters used to fill the bucket
-	 * @return the number of characters extracted from the reader
-	 * @throws IOException if any error occurs while extracting characters from the reader
-	 */
-	public int fill(Reader reader) throws IOException {
-		length = reader.read(data, 0, data.length);
-		return length;
-	}
+    /**
+     * Fills the bucket with the characters take from a {@link Reader}
+     * <p> The {@link CharBucket#length} attribute will be updated with the number of characters extracted
+     *
+     * @param reader the source of characters used to fill the bucket
+     * @return the number of characters extracted from the reader
+     * @throws IOException if any error occurs while extracting characters from the reader
+     */
+    public int fill(Reader reader) throws IOException {
+        length = reader.read(data, 0, data.length);
+        return length;
+    }
 
-	/**
-	 * Returns true if the bucket is empty (i.e. length <= 0), false otherwise.
-	 * @return true if the bucket is empty (i.e. length <= 0), false otherwise.
-	 */
-	public boolean isEmpty() {
-		return length <= 0;
-	}
+    /**
+     * Returns true if the bucket is empty (i.e. length <= 0), false otherwise.
+     *
+     * @return true if the bucket is empty (i.e. length <= 0), false otherwise.
+     */
+    public boolean isEmpty() {
+        return length <= 0;
+    }
 }

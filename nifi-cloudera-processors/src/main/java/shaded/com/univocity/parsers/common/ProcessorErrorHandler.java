@@ -33,6 +33,7 @@ import shaded.com.univocity.parsers.common.processor.core.Processor;
  * <p>When writing, the {@link #handleError(DataProcessingException, Object[], Context)} method will be called only when a using
  * the {@link AbstractWriter#processRecord(Object)} methods, and {@link RowWriterProcessor} fails to execute.</p>
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see RowProcessor
  * @see RowWriterProcessor
  * @see DataProcessingException
@@ -42,20 +43,18 @@ import shaded.com.univocity.parsers.common.processor.core.Processor;
  * @see CommonSettings
  * @see Context
  *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
  */
 public interface ProcessorErrorHandler<T extends Context> {
 
-	/**
-	 * Handles non-fatal instances of {@code DataProcessingException} that are thrown by a {@link Processor} while processing a record parsed from the input,
-	 * or from a {@link RowWriterProcessor} when processing records for writing.
-	 *
-	 * @param error the exception thrown during the processing an input record. Rethrow the error to abort the parsing process.
-	 * 	When parsing, you can also invoke {@link ParsingContext#stop()} to stop the parser silently.
-	 * @param inputRow the record that could not be processed. When writing, the original input object (i.e. {@code null}, java bean or object array) will be sent by the writer.
-	 * @param context the parsing context with information about the state of the parser at the time the error occurred. Will be null when writing.
-	 */
-	void handleError(DataProcessingException error, Object[] inputRow, T context);
+    /**
+     * Handles non-fatal instances of {@code DataProcessingException} that are thrown by a {@link Processor} while processing a record parsed from the input,
+     * or from a {@link RowWriterProcessor} when processing records for writing.
+     *
+     * @param error    the exception thrown during the processing an input record. Rethrow the error to abort the parsing process.
+     *                 When parsing, you can also invoke {@link ParsingContext#stop()} to stop the parser silently.
+     * @param inputRow the record that could not be processed. When writing, the original input object (i.e. {@code null}, java bean or object array) will be sent by the writer.
+     * @param context  the parsing context with information about the state of the parser at the time the error occurred. Will be null when writing.
+     */
+    void handleError(DataProcessingException error, Object[] inputRow, T context);
 
 }

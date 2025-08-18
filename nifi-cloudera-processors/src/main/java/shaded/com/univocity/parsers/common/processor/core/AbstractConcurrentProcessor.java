@@ -36,204 +36,198 @@ import java.util.concurrent.*;
  */
 public abstract class AbstractConcurrentProcessor<T extends Context> implements Processor<T> {
 
-	private final Processor processor;
+    private final Processor processor;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final int limit;
+    private final Object lock;
+    private boolean ended = false;
+    private volatile long rowCount;
+    private Future<Void> process;
+    private T currentContext;
+    private Node<T> inputQueue;
+    private volatile Node<T> outputQueue;
+    private volatile long input;
+    private volatile long output;
+    private boolean contextCopyingEnabled = false;
+    /**
+     * Creates a non-blocking {@code AbstractConcurrentProcessor}, to perform processing of rows parsed from the input in a separate thread.
+     *
+     * @param processor a regular {@link Processor} implementation which will be executed in a separate thread.
+     */
+    public AbstractConcurrentProcessor(Processor<T> processor) {
+        this(processor, -1);
+    }
 
-	private boolean ended = false;
+    /**
+     * Creates a blocking {@code ConcurrentProcessor}, to perform processing of rows parsed from the input in a separate thread.
+     *
+     * @param processor a regular {@link Processor} implementation which will be executed in a separate thread.
+     * @param limit     the limit of rows to be kept in memory before blocking the input parsing process.
+     */
+    public AbstractConcurrentProcessor(Processor<T> processor, int limit) {
+        if (processor == null) {
+            throw new IllegalArgumentException("Row processor cannot be null");
+        }
+        this.processor = processor;
+        input = 0;
+        output = 0;
+        lock = new Object();
+        this.limit = limit;
+    }
 
-	private static class Node<T> {
-		public Node(String[] row, T context) {
-			this.row = row;
-			this.context = context;
-		}
+    /**
+     * Indicates whether this processor should persist the {@link Context} object that is sent to the wrapped {@link Processor}
+     * given in the constructor of this class, so all methods of {@link Context} reflect the parser state at the time
+     * each row was parsed.
+     * <p>
+     * Defaults to {@code false}
+     *
+     * @return a flag indicating whether the parsing context must be persisted along with the parsed row
+     * so its methods reflect the state of the parser at the time the record was produced.
+     */
+    public boolean isContextCopyingEnabled() {
+        return contextCopyingEnabled;
+    }
 
-		public final T context;
-		public final String[] row;
-		public Node next;
-	}
+    /**
+     * Configures this processor to persist the {@link Context} object that is sent to the wrapped {@link Processor}
+     * given in the constructor of this class, so all methods of {@link Context} reflect the parser state at the time
+     * each row was parsed.
+     * <p>
+     * Defaults to {@code false}
+     *
+     * @param contextCopyingEnabled a flag indicating whether the parsing context must be persisted along with the parsed row
+     *                              so its methods reflect the state of the parser at the time the record was produced.
+     */
+    public void setContextCopyingEnabled(boolean contextCopyingEnabled) {
+        this.contextCopyingEnabled = contextCopyingEnabled;
+    }
 
-	private final ExecutorService executor = Executors.newSingleThreadExecutor();
-	private volatile long rowCount;
+    @Override
+    public final void processStarted(T context) {
+        currentContext = wrapContext(context);
 
-	private Future<Void> process;
+        processor.processStarted(currentContext);
 
-	private T currentContext;
-	private Node<T> inputQueue;
-	private volatile Node<T> outputQueue;
-	private final int limit;
-	private volatile long input;
-	private volatile long output;
-	private final Object lock;
-	private boolean contextCopyingEnabled = false;
+        startProcess();
+    }
 
-	/**
-	 * Creates a non-blocking {@code AbstractConcurrentProcessor}, to perform processing of rows parsed from the input in a separate thread.
-	 *
-	 * @param processor a regular {@link Processor} implementation which will be executed in a separate thread.
-	 */
-	public AbstractConcurrentProcessor(Processor<T> processor) {
-		this(processor, -1);
-	}
+    private void startProcess() {
+        ended = false;
+        rowCount = 0;
 
-	/**
-	 * Creates a blocking {@code ConcurrentProcessor}, to perform processing of rows parsed from the input in a separate thread.
-	 *
-	 * @param processor a regular {@link Processor} implementation which will be executed in a separate thread.
-	 * @param limit     the limit of rows to be kept in memory before blocking the input parsing process.
-	 */
-	public AbstractConcurrentProcessor(Processor<T> processor, int limit) {
-		if (processor == null) {
-			throw new IllegalArgumentException("Row processor cannot be null");
-		}
-		this.processor = processor;
-		input = 0;
-		output = 0;
-		lock = new Object();
-		this.limit = limit;
-	}
+        process = executor.submit(new Callable<Void>() {
 
-	/**
-	 * Indicates whether this processor should persist the {@link Context} object that is sent to the wrapped {@link Processor}
-	 * given in the constructor of this class, so all methods of {@link Context} reflect the parser state at the time
-	 * each row was parsed.
-	 *
-	 * Defaults to {@code false}
-	 *
-	 * @return a flag indicating whether the parsing context must be persisted along with the parsed row
-	 * so its methods reflect the state of the parser at the time the record was produced.
-	 */
-	public boolean isContextCopyingEnabled() {
-		return contextCopyingEnabled;
-	}
+            @Override
+            public Void call() {
+                while (outputQueue == null && !ended) {
+                    Thread.yield();
+                }
 
-	/**
-	 * Configures this processor to persist the {@link Context} object that is sent to the wrapped {@link Processor}
-	 * given in the constructor of this class, so all methods of {@link Context} reflect the parser state at the time
-	 * each row was parsed.
-	 *
-	 * Defaults to {@code false}
-	 *
-	 * @param contextCopyingEnabled a flag indicating whether the parsing context must be persisted along with the parsed row
-	 *                              so its methods reflect the state of the parser at the time the record was produced.
-	 */
-	public void setContextCopyingEnabled(boolean contextCopyingEnabled) {
-		this.contextCopyingEnabled = contextCopyingEnabled;
-	}
-
-	@Override
-	public final void processStarted(T context) {
-		currentContext = wrapContext(context);
-
-		processor.processStarted(currentContext);
-
-		startProcess();
-	}
-
-	private void startProcess() {
-		ended = false;
-		rowCount = 0;
-
-		process = executor.submit(new Callable<Void>() {
-
-			@Override
-			public Void call() {
-				while (outputQueue == null && !ended) {
-					Thread.yield();
-				}
-
-				while (!ended) {
-					rowCount++;
+                while (!ended) {
+                    rowCount++;
 
 
-					processor.rowProcessed(outputQueue.row, outputQueue.context);
-					while (outputQueue.next == null) {
-						if (ended && outputQueue.next == null) {
-							return null;
-						}
-						Thread.yield();
-					}
-					outputQueue = outputQueue.next;
-					output++;
-					if (limit > 1) {
-						synchronized (lock) {
-							lock.notify();
-						}
-					}
-				}
+                    processor.rowProcessed(outputQueue.row, outputQueue.context);
+                    while (outputQueue.next == null) {
+                        if (ended && outputQueue.next == null) {
+                            return null;
+                        }
+                        Thread.yield();
+                    }
+                    outputQueue = outputQueue.next;
+                    output++;
+                    if (limit > 1) {
+                        synchronized (lock) {
+                            lock.notify();
+                        }
+                    }
+                }
 
-				while (outputQueue != null) {
-					rowCount++;
-					processor.rowProcessed(outputQueue.row, outputQueue.context);
-					outputQueue = outputQueue.next;
-				}
+                while (outputQueue != null) {
+                    rowCount++;
+                    processor.rowProcessed(outputQueue.row, outputQueue.context);
+                    outputQueue = outputQueue.next;
+                }
 
-				return null;
-			}
+                return null;
+            }
 
-		});
-	}
+        });
+    }
 
-	@Override
-	public final void rowProcessed(String[] row, T context) {
-		if (inputQueue == null) {
-			inputQueue = new Node(row, grabContext(context));
-			outputQueue = inputQueue;
-		} else {
-			if (limit > 1) {
-				synchronized (lock) {
-					try {
-						if (input - output >= limit) {
-							lock.wait();
-						}
-					} catch (InterruptedException e) {
-						ended = true;
-						Thread.currentThread().interrupt();
-						return;
-					}
-				}
-			}
-			inputQueue.next = new Node(row, grabContext(context));
-			inputQueue = inputQueue.next;
-		}
-		input++;
-	}
+    @Override
+    public final void rowProcessed(String[] row, T context) {
+        if (inputQueue == null) {
+            inputQueue = new Node(row, grabContext(context));
+            outputQueue = inputQueue;
+        } else {
+            if (limit > 1) {
+                synchronized (lock) {
+                    try {
+                        if (input - output >= limit) {
+                            lock.wait();
+                        }
+                    } catch (InterruptedException e) {
+                        ended = true;
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            }
+            inputQueue.next = new Node(row, grabContext(context));
+            inputQueue = inputQueue.next;
+        }
+        input++;
+    }
 
-	@Override
-	public final void processEnded(T context) {
-		ended = true;
-		if (limit > 1) {
-			synchronized (lock) {
-				lock.notify();
-			}
-		}
+    @Override
+    public final void processEnded(T context) {
+        ended = true;
+        if (limit > 1) {
+            synchronized (lock) {
+                lock.notify();
+            }
+        }
 
-		try {
-			process.get();
-		} catch (ExecutionException e) {
-			throw new DataProcessingException("Error executing process", e);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		} finally {
-			try {
-				processor.processEnded(grabContext(context));
-			} finally{
-				executor.shutdown();
-			}
-		}
-	}
+        try {
+            process.get();
+        } catch (ExecutionException e) {
+            throw new DataProcessingException("Error executing process", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            try {
+                processor.processEnded(grabContext(context));
+            } finally {
+                executor.shutdown();
+            }
+        }
+    }
 
-	private T grabContext(T context) {
-		if (contextCopyingEnabled) {
-			return copyContext(context);
-		}
-		return currentContext;
+    private T grabContext(T context) {
+        if (contextCopyingEnabled) {
+            return copyContext(context);
+        }
+        return currentContext;
 
-	}
+    }
 
-	protected final long getRowCount(){
-		return rowCount;
-	}
+    protected final long getRowCount() {
+        return rowCount;
+    }
 
-	protected abstract T copyContext(T context);
+    protected abstract T copyContext(T context);
 
-	protected abstract T wrapContext(T context);
+    protected abstract T wrapContext(T context);
+
+    private static class Node<T> {
+        public final T context;
+        public final String[] row;
+        public Node next;
+        public Node(String[] row, T context) {
+            this.row = row;
+            this.context = context;
+        }
+    }
 }

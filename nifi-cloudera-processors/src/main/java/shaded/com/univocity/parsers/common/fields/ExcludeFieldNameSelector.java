@@ -25,49 +25,49 @@ import java.util.Set;
  *
  * <p> This selector stores undesired fields and will return the indexes of those fields that are not part of the selection.
  *
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see FieldSelector
  * @see FieldSet
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  *
  */
 public class ExcludeFieldNameSelector extends FieldSet<String> implements FieldSelector, Cloneable {
 
-	/**
-	 * Returns the indexes of any that are part of a sequence of headers but not part of the selection.
-	 * @param headers the sequence of headers that might have some elements selected by this FieldSelector
-	 * @return the positions of all elements which were not selected.
-	 */
-	@Override
-	public int[] getFieldIndexes(NormalizedString[] headers) {
-		if(headers == null){
-			return null;
-		}
-		NormalizedString[] normalizedHeaders = headers;
+    /**
+     * Returns the indexes of any that are part of a sequence of headers but not part of the selection.
+     *
+     * @param headers the sequence of headers that might have some elements selected by this FieldSelector
+     * @return the positions of all elements which were not selected.
+     */
+    @Override
+    public int[] getFieldIndexes(NormalizedString[] headers) {
+        if (headers == null) {
+            return null;
+        }
+        NormalizedString[] normalizedHeaders = headers;
 
-		// removes duplicates if any
-		Set<NormalizedString> chosenFields = NormalizedString.toHashSet(this.get());
+        // removes duplicates if any
+        Set<NormalizedString> chosenFields = NormalizedString.toHashSet(this.get());
 
-		Object[] unknownFields = ArgumentUtils.findMissingElements(normalizedHeaders, chosenFields);
-		int[] out = new int[normalizedHeaders.length - (chosenFields.size() - unknownFields.length)];
+        Object[] unknownFields = ArgumentUtils.findMissingElements(normalizedHeaders, chosenFields);
+        int[] out = new int[normalizedHeaders.length - (chosenFields.size() - unknownFields.length)];
 
-		int j = 0;
-		for (int i = 0; i < normalizedHeaders.length; i++) {
-			if (!chosenFields.contains(normalizedHeaders[i])) {
-				out[j++] = i;
-			}
-		}
+        int j = 0;
+        for (int i = 0; i < normalizedHeaders.length; i++) {
+            if (!chosenFields.contains(normalizedHeaders[i])) {
+                out[j++] = i;
+            }
+        }
 
-		return out;
-	}
+        return out;
+    }
 
-	@Override
-	public String describe() {
-		return "undesired " + super.describe();
-	}
+    @Override
+    public String describe() {
+        return "undesired " + super.describe();
+    }
 
-	@Override
-	public int[] getFieldIndexes(String[] headers) {
-		return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
-	}
+    @Override
+    public int[] getFieldIndexes(String[] headers) {
+        return getFieldIndexes(NormalizedString.toIdentifierGroupArray(headers));
+    }
 }

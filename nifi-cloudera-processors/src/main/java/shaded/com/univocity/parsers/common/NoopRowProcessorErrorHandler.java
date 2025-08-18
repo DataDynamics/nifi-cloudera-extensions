@@ -19,23 +19,22 @@ package shaded.com.univocity.parsers.common;
  * An (singleton) implementation of {@link RowProcessorErrorHandler} that simply rethrows any {@link DataProcessingException}
  * that comes into its {@link #handleError(DataProcessingException, Object[], ParsingContext)} method
  *
- * @see RowProcessorErrorHandler
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
+ * @see RowProcessorErrorHandler
  *
  */
 final class NoopRowProcessorErrorHandler implements RowProcessorErrorHandler {
 
-	public static final RowProcessorErrorHandler instance = new NoopRowProcessorErrorHandler();
+    public static final RowProcessorErrorHandler instance = new NoopRowProcessorErrorHandler();
 
-	private NoopRowProcessorErrorHandler() {
-	}
+    private NoopRowProcessorErrorHandler() {
+    }
 
-	/**
-	 * Rethrows the {@link DataProcessingException}
-	 */
-	@Override
-	public void handleError(DataProcessingException error, Object[] inputRow, ParsingContext context) {
-		throw error;
-	}
+    /**
+     * Rethrows the {@link DataProcessingException}
+     */
+    @Override
+    public void handleError(DataProcessingException error, Object[] inputRow, ParsingContext context) {
+        throw error;
+    }
 }

@@ -26,32 +26,33 @@ package shaded.com.univocity.parsers.common.processor.core;
  * <p> After {@link #batchProcessed(int)} is invoked, all values will be discarded and the next batch of column values will be accumulated.
  * This process will repeat until there's no more rows in the input.
  *
+ * @param <T> the type of the data stored by the columns.
+ * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  * @see AbstractBatchedColumnProcessor
  * @see AbstractBatchedObjectColumnProcessor
  * @see Processor
- *
- * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
- *
- * @param <T> the type of the data stored by the columns.
  */
 interface BatchedColumnReader<T> extends ColumnReader<T> {
 
-	/**
-	 * Returns the number of rows processed in each batch
-	 * @return the number of rows per batch
-	 */
-	int getRowsPerBatch();
+    /**
+     * Returns the number of rows processed in each batch
+     *
+     * @return the number of rows per batch
+     */
+    int getRowsPerBatch();
 
-	/**
-	 * Returns the number of batches already processed
-	 * @return the number of batches already processed
-	 */
-	int getBatchesProcessed();
+    /**
+     * Returns the number of batches already processed
+     *
+     * @return the number of batches already processed
+     */
+    int getBatchesProcessed();
 
-	/**
-	 * Callback to the user, where the lists with values parsed for all columns can be accessed using the methods {@link #getColumnValuesAsList()},
-	 * {@link #getColumnValuesAsMapOfIndexes()} and {@link #getColumnValuesAsMapOfNames()}.
-	 * @param rowsInThisBatch the number of rows processed in the current batch. This corresponds to the number of elements of each list of each column.
-	 */
-	void batchProcessed(int rowsInThisBatch);
+    /**
+     * Callback to the user, where the lists with values parsed for all columns can be accessed using the methods {@link #getColumnValuesAsList()},
+     * {@link #getColumnValuesAsMapOfIndexes()} and {@link #getColumnValuesAsMapOfNames()}.
+     *
+     * @param rowsInThisBatch the number of rows processed in the current batch. This corresponds to the number of elements of each list of each column.
+     */
+    void batchProcessed(int rowsInThisBatch);
 }

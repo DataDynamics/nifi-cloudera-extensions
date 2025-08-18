@@ -20,12 +20,12 @@ package shaded.com.univocity.parsers.common.processor.core;
  */
 public final class NoopProcessor extends AbstractProcessor {
 
-	/**
-	 * The singleton instance of the no-op {@link Processor}
-	 */
-	public static final Processor instance = new NoopProcessor();
+    /**
+     * The singleton instance of the no-op {@link Processor}
+     */
+    public static final Processor instance = new NoopProcessor();
 
-	private NoopProcessor() {
-	}
+    private NoopProcessor() {
+    }
 
 }

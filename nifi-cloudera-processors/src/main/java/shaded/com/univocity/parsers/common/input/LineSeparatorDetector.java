@@ -23,43 +23,43 @@ package shaded.com.univocity.parsers.common.input;
  */
 public abstract class LineSeparatorDetector implements InputAnalysisProcess {
 
-	@Override
-	public void execute(char[] characters, int length) {
-		char separator1 = '\0';
-		char separator2 = '\0';
-		for (int c = 0; c < length; c++) {
-			char ch = characters[c];
-			if (ch == '\n' || ch == '\r') {
-				if (separator1 == '\0') {
-					separator1 = ch;
-				} else {
-					separator2 = ch;
-					break;
-				}
-			} else if (separator1 != '\0') {
-				break;
-			}
-		}
+    @Override
+    public void execute(char[] characters, int length) {
+        char separator1 = '\0';
+        char separator2 = '\0';
+        for (int c = 0; c < length; c++) {
+            char ch = characters[c];
+            if (ch == '\n' || ch == '\r') {
+                if (separator1 == '\0') {
+                    separator1 = ch;
+                } else {
+                    separator2 = ch;
+                    break;
+                }
+            } else if (separator1 != '\0') {
+                break;
+            }
+        }
 
-		char lineSeparator1 = separator1;
-		char lineSeparator2 = separator2;
+        char lineSeparator1 = separator1;
+        char lineSeparator2 = separator2;
 
-		if (separator1 != '\0') {
-			if (separator1 == '\n') {
-				lineSeparator1 = '\n';
-				lineSeparator2 = '\0';
-			} else {
-				lineSeparator1 = '\r';
-				if (separator2 == '\n') {
-					lineSeparator2 = '\n';
-				} else {
-					lineSeparator2 = '\0';
-				}
-			}
-		}
+        if (separator1 != '\0') {
+            if (separator1 == '\n') {
+                lineSeparator1 = '\n';
+                lineSeparator2 = '\0';
+            } else {
+                lineSeparator1 = '\r';
+                if (separator2 == '\n') {
+                    lineSeparator2 = '\n';
+                } else {
+                    lineSeparator2 = '\0';
+                }
+            }
+        }
 
-		apply(lineSeparator1, lineSeparator2);
-	}
+        apply(lineSeparator1, lineSeparator2);
+    }
 
-	protected abstract void apply(char lineSeparator1, char lineSeparator2);
+    protected abstract void apply(char lineSeparator1, char lineSeparator2);
 }

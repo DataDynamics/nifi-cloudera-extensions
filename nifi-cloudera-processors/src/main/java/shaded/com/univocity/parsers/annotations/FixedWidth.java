@@ -17,7 +17,6 @@ package shaded.com.univocity.parsers.annotations;
 
 import shaded.com.univocity.parsers.common.processor.BeanProcessor;
 import shaded.com.univocity.parsers.common.processor.BeanWriterProcessor;
-import com.univocity.parsers.fixed.*;
 import shaded.com.univocity.parsers.fixed.*;
 
 import java.lang.annotation.*;
@@ -42,48 +41,48 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface FixedWidth {
 
-	/**
-	 * Sets the length of the fixed-width field
-	 *
-	 * @return length of the fixed-width field
-	 */
-	int value() default -1;
+    /**
+     * Sets the length of the fixed-width field
+     *
+     * @return length of the fixed-width field
+     */
+    int value() default -1;
 
-	/**
-	 * Sets the alignment of the fixed-width field
-	 *
-	 * @return alignment of the fixed-width field
-	 */
-	FieldAlignment alignment() default FieldAlignment.LEFT;
+    /**
+     * Sets the alignment of the fixed-width field
+     *
+     * @return alignment of the fixed-width field
+     */
+    FieldAlignment alignment() default FieldAlignment.LEFT;
 
-	/**
-	 * Sets the padding character of the fixed-width field
-	 *
-	 * @return padding of the fixed-width field
-	 */
-	char padding() default ' ';
+    /**
+     * Sets the padding character of the fixed-width field
+     *
+     * @return padding of the fixed-width field
+     */
+    char padding() default ' ';
 
-	/**
-	 * Configures whether to retain the padding character when parsing values for this field
-	 *
-	 * <i>(defaults to {@code false})</i>
-	 *
-	 * @return flag indicating the padding character should be kept in the parsed value
-	 */
-	boolean keepPadding() default false;
+    /**
+     * Configures whether to retain the padding character when parsing values for this field
+     *
+     * <i>(defaults to {@code false})</i>
+     *
+     * @return flag indicating the padding character should be kept in the parsed value
+     */
+    boolean keepPadding() default false;
 
-	/**
-	 * Defines the starting position of the fixed-width field
-	 *
-	 * @return Defines the starting position of the fixed-width field
-	 */
-	int from() default -1;
+    /**
+     * Defines the starting position of the fixed-width field
+     *
+     * @return Defines the starting position of the fixed-width field
+     */
+    int from() default -1;
 
-	/**
-	 * Defines the end position of the fixed-width field
-	 *
-	 * @return Defines the end position of the fixed-width field
-	 */
-	int to() default -1;
+    /**
+     * Defines the end position of the fixed-width field
+     *
+     * @return Defines the end position of the fixed-width field
+     */
+    int to() default -1;
 
 }
