@@ -1,9 +1,6 @@
 package io.datadynamics.nifi.parser;
 
 
-import shaded.com.univocity.parsers.csv.CsvFormat;
-import shaded.com.univocity.parsers.csv.CsvParser;
-import shaded.com.univocity.parsers.csv.CsvParserSettings;
 import org.apache.nifi.annotation.behavior.*;
 import org.apache.nifi.annotation.behavior.InputRequirement.Requirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
@@ -21,6 +18,9 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
+import shaded.com.univocity.parsers.csv.CsvFormat;
+import shaded.com.univocity.parsers.csv.CsvParser;
+import shaded.com.univocity.parsers.csv.CsvParserSettings;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -47,12 +47,11 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MultilineCsvParser extends AbstractProcessor {
 
     // ---- Constants ----
-
     public static final char RECORD_SEP = '\u001E'; // RS (Record Separator)
     public static final char COLUMN_SEP = '\u001F'; // US (Unit Separator)
 
     // ---- Input Delimiters ----
-    public static final PropertyDescriptor LINE_DELIMITER = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor INPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
             .name("입력 파일의 라인 구분자")
             .description("입력 파일의 멀티 문자 기반의 라인 구분자. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
             .required(true)
@@ -61,7 +60,7 @@ public class MultilineCsvParser extends AbstractProcessor {
             .defaultValue("@@\\n")
             .build();
 
-    public static final PropertyDescriptor COLUMN_DELIMITER = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor INPUT_COLUMN_DELIMITER = new PropertyDescriptor.Builder()
             .name("입력 파일의 컬럼 구분자")
             .description("입력 파일의 멀티 문자 기반의 컬럼 구분자. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
             .required(true)
@@ -89,6 +88,17 @@ public class MultilineCsvParser extends AbstractProcessor {
             .defaultValue("false")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
+            .build();
+
+    public static final PropertyDescriptor SKIP_HEADER_COUNT = new PropertyDescriptor.Builder()
+            .name("건너뛸 헤더 라인수")
+            .description("보통 첫번째 라인을 헤더 라인으로 사용할 수 있으나 이 값을 지정하면 지정한 라인수 만큼 건너뛰고 헤더 라인으로 인지합니다. 0의 의미는 첫번째 라인을 헤더 라인으로 사용한다는 의미입니다.\n"
+                    + "1로 지정하면 1개 라인을 건너뛰고 두번째 라인을 헤더 라인으로 인지합니다.")
+            .required(false)
+            .defaultValue("0")
+            .dependsOn(HAS_HEADER, "true")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
             .build();
 
     // ---- Charsets ----
@@ -138,6 +148,16 @@ public class MultilineCsvParser extends AbstractProcessor {
             .defaultValue("0")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .build();
+
+    public static final PropertyDescriptor FILE_TYPE = new PropertyDescriptor.Builder()
+            .name("파일의 유형")
+            .description("파일의 유형을 지정합니다. CF, DF, FF를 지정할 수 있습니다.")
+            .required(true)
+            .allowableValues("CF", "DF", "FF")
+            .defaultValue("DF")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
 
     public static final PropertyDescriptor INCLUDE_COLUMN_SEP_AT_LAST_COLUMN = new PropertyDescriptor.Builder()
@@ -193,18 +213,20 @@ public class MultilineCsvParser extends AbstractProcessor {
     @Override
     protected void init(final org.apache.nifi.processor.ProcessorInitializationContext context) {
         final List<PropertyDescriptor> descriptors = new ArrayList<>();
-        descriptors.add(LINE_DELIMITER);
-        descriptors.add(COLUMN_DELIMITER);
+        descriptors.add(FILE_TYPE);
+        descriptors.add(INPUT_LINE_DELIMITER);
+        descriptors.add(INPUT_COLUMN_DELIMITER);
         descriptors.add(QUOTE_CHAR);
         descriptors.add(HAS_HEADER);
+        descriptors.add(SKIP_HEADER_COUNT);
         descriptors.add(COLUMN_COUNT);
-        descriptors.add(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN);
         descriptors.add(FIXED_SIZE_COLUMN);
-        descriptors.add(SKIP_EMPTY_LINE);
+        descriptors.add(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN);
         descriptors.add(INPUT_CHARACTER_SET);
         descriptors.add(OUTPUT_CHARACTER_SET);
         descriptors.add(OUTPUT_LINE_DELIMITER);
         descriptors.add(OUTPUT_COLUMN_DELIMITER);
+        descriptors.add(SKIP_EMPTY_LINE);
         this.descriptors = Collections.unmodifiableList(descriptors);
 
         final Set<Relationship> relationships = new HashSet<>();
@@ -233,10 +255,12 @@ public class MultilineCsvParser extends AbstractProcessor {
         if (ff == null) return;
 
         // 사용자가 입력한 파라미터 값들
-        final String lineDelimRaw = context.getProperty(LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
-        final String colDelimRaw = context.getProperty(COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+        final String fileType = context.getProperty(FILE_TYPE).evaluateAttributeExpressions(ff).getValue();
+        final String lineDelimRaw = context.getProperty(INPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+        final String colDelimRaw = context.getProperty(INPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String quoteRaw = context.getProperty(QUOTE_CHAR).evaluateAttributeExpressions(ff).getValue();
         final boolean hasHeader = context.getProperty(HAS_HEADER).evaluateAttributeExpressions(ff).asBoolean();
+        final int skipHeaderCount = context.getProperty(SKIP_HEADER_COUNT).evaluateAttributeExpressions(ff).asInteger();
         final int columnCount = context.getProperty(COLUMN_COUNT).evaluateAttributeExpressions(ff).asInteger();
         final boolean includeColumnSepAtLastColumn = context.getProperty(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN).evaluateAttributeExpressions(ff).asBoolean();
         final boolean skipEmptyLine = context.getProperty(SKIP_EMPTY_LINE).evaluateAttributeExpressions(ff).asBoolean();
@@ -245,6 +269,17 @@ public class MultilineCsvParser extends AbstractProcessor {
         final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
         final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String outColRaw = context.getProperty(OUTPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+
+        // Validation
+        if (("CF".equals(fileType) || "DF".equals(fileType)) && columnCount < 1) {
+            throw new ProcessException("파일 유형이 CF, DF 유형이라면 검증할 컬럼의 개수는 1 이상이어야 합니다.");
+        }
+
+        if ("FF".equals(fileType)) {
+            if (fixedSizeOfColumn > 0) {
+                throw new ProcessException("파일의 유형이 FF 형식이라면 '전체 컬럼의 길이의 합'을 지정해야 합니다.");
+            }
+        }
 
         // 입력한 값들에 대한 escape를 처리합니다.
         final String lineDelim = unescape(lineDelimRaw);
@@ -286,7 +321,8 @@ public class MultilineCsvParser extends AbstractProcessor {
 
                         // CSV Parser를 실행합니다. 실제 처리는 RowProcessor를 사용합니다.
                         // CSV Parser가 파싱한 컬럼을 특수하게 처리하고자 하는 경우 Row Processor를 구현하여 적용하도록 합니다.
-                        NewlineToSpaceConverter rowProcessor = new NewlineToSpaceConverter(colDelim, outLineDelim, outColDelim, writer, rowCounter, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn, log);
+                        NewlineToSpaceConverter rowProcessor = new NewlineToSpaceConverter(colDelim, outLineDelim, outColDelim,
+                                writer, rowCounter, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn, log);
                         settings.setProcessor(rowProcessor);
 
                         CsvParser parser = new CsvParser(settings);

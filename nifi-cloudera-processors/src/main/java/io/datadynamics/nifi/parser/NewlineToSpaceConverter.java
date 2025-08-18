@@ -1,8 +1,10 @@
 package io.datadynamics.nifi.parser;
 
+import com.google.common.base.Joiner;
+import org.apache.nifi.logging.ComponentLog;
+import org.apache.nifi.processor.exception.ProcessException;
 import shaded.com.univocity.parsers.common.ParsingContext;
 import shaded.com.univocity.parsers.common.processor.AbstractRowProcessor;
-import org.apache.nifi.logging.ComponentLog;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -67,21 +69,22 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
         // 컬럼 카운트를 지정하면 컬럼의 개수를 검증합니다.
         if (columnCountForValidation > 0) {
             if (columnCountForValidation != rows.length) {
-                throw new IllegalStateException(String.format("컬럼 개수가 일치하지 않습니다. 초기 컬럼 개수: %s, 현재 컬럼 개수: %s", includeColumnSepAtLastColumn ? columnCountForValidation - 1 : columnCountForValidation, includeColumnSepAtLastColumn ? rows.length - 1 : rows.length));
+                log.warn(Joiner.on("").join(rows));
+                throw new ProcessException(String.format("컬럼 개수가 일치하지 않습니다. 더이상 처리할 수 없습니다. 초기 컬럼 개수: %s, 현재 컬럼 개수: %s", includeColumnSepAtLastColumn ? columnCountForValidation - 1 : columnCountForValidation, includeColumnSepAtLastColumn ? rows.length - 1 : rows.length));
+            }
+        }
+
+        // 컬럼의 문자열 크기가 고정일때 지정한 컬럼의 크기와 같은지 확인하고 같지 않으면 예외를 발생하여 더이상 처리하지 않도록 함
+        if (fixedSizeOfColumnForValidation > 0) {
+            // 모든 컬럼의 값을 JOIN하여 길이를 확인합니다.
+            int length = Joiner.on("").join(rows).getBytes().length;
+            if (length != fixedSizeOfColumnForValidation) {
+                throw new ProcessException(String.format("컬럼의 길이가 일치하지 않습니다. 더이상 처리할 수 없습니다. 검증할 컬럼의 길이: %s, 현재 컬럼의 길이: %s", fixedSizeOfColumnForValidation, length));
             }
         }
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < rows.length; i++) {
-            // 컬럼의 문자열 크기가 고정일때 지정한 컬럼의 크기와 같은지 확인하고 같지 않으면 예외를 발생하여 더이상 처리하지 않도록 함
-            if (fixedSizeOfColumnForValidation > 0) {
-                // 성능을 고려하여 컬럼당 1회, 검증 조건이 켜 있는 경우에만 실행하도록 함.
-                int length = rows[i].toCharArray().length;
-                if (length != fixedSizeOfColumnForValidation) {
-                    throw new IllegalStateException(String.format("컬럼의 길이가 일치하지 않습니다. 검증할 컬럼의 길이: %s, 현재 컬럼의 길이: %s", fixedSizeOfColumnForValidation, length));
-                }
-            }
-
             // 컬럼의 크기가 고정이 아닌 가변일 때
             sb.append(rows[i].replace("\r\n", " ").replace("\n", " ").replace("" + COLUMN_SEP, inColSep));
             if (i < rows.length - 1) {
@@ -95,7 +98,7 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
             rowCounter.incrementAndGet();
             writer.write(sb.toString());
         } catch (IOException e) {
-            throw new RuntimeException("변환한 파일의 내용을 저장할 수 없습니다. 원인: " + e.getMessage(), e);
+            throw new ProcessException("변환한 파일의 내용을 저장할 수 없습니다. 원인: " + e.getMessage(), e);
         }
     }
 }
