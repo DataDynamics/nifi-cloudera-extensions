@@ -1,7 +1,7 @@
 <?xml version="1.0"  encoding="UTF-8"?>
 <project name="deploy" default="scp" basedir=".">
 
-    <property name="localNiFiPath" value="${user.home}/Projects/nifi/nifi-1.26.0/extensions"/>
+    <property name="localNiFiPath" value="/Users/fharenheit/Downloads/nifi-1.26.0/extensions"/>
     <property name="remoteNiFiPath" value="/var/lib/nifi/extensions"/>
 
     <property name="username" value="root"/>

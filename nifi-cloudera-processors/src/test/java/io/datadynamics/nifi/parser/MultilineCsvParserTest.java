@@ -22,7 +22,7 @@ public class MultilineCsvParserTest {
     void multi_header() {
         TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, "true");
+        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE);
         runner.setProperty(MultilineCsvParser.SKIP_HEADER_COUNT, "2");
         runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
@@ -42,7 +42,7 @@ public class MultilineCsvParserTest {
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
         out.assertAttributeEquals("parsecsv.record.count", "1");
-        out.assertAttributeEquals("parsecsv.header.present", "true");
+        out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
         out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
         out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
         out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
@@ -52,7 +52,7 @@ public class MultilineCsvParserTest {
     void simple_noHeader_defaults_work_multiline() {
         TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, "false");
+        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
         runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
         String input = "a^|b^|casdf\nasdfasdf@@\n";
@@ -78,7 +78,7 @@ public class MultilineCsvParserTest {
     void simple_noHeader_defaults_work() {
         TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, "false");
+        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
         runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
         String input = "a^|b^|c@@\n1^|2^|3@@\n";
@@ -104,7 +104,7 @@ public class MultilineCsvParserTest {
     void header_is_skipped_and_not_counted() {
         TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, "true");
+        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE.getValue());
         runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
 
         String input = "H1^|H2@@\n1^|2@@\n3^|4@@\n";
@@ -116,7 +116,7 @@ public class MultilineCsvParserTest {
         MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
         out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
         out.assertAttributeEquals("parsecsv.record.count", "2");
-        out.assertAttributeEquals("parsecsv.header.present", "true");
+        out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
     }
 
     @Test

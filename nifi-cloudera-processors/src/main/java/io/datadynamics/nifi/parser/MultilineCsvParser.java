@@ -5,10 +5,7 @@ import org.apache.nifi.annotation.behavior.*;
 import org.apache.nifi.annotation.behavior.InputRequirement.Requirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
-import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.components.ValidationContext;
-import org.apache.nifi.components.ValidationResult;
-import org.apache.nifi.components.Validator;
+import org.apache.nifi.components.*;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.logging.ComponentLog;
@@ -50,6 +47,14 @@ public class MultilineCsvParser extends AbstractProcessor {
     public static final char RECORD_SEP = '\u001E'; // RS (Record Separator)
     public static final char COLUMN_SEP = '\u001F'; // US (Unit Separator)
 
+    // ---- Values ----
+    static final AllowableValue DF = new AllowableValue("DF", "DF", "DF");
+    static final AllowableValue CF = new AllowableValue("CF", "CF", "CF");
+    static final AllowableValue FF = new AllowableValue("FF", "FF", "FF");
+
+    static final AllowableValue TRUE = new AllowableValue("true", "True", "True");
+    static final AllowableValue FALSE = new AllowableValue("false", "False", "False");
+
     // ---- Input Delimiters ----
     public static final PropertyDescriptor INPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
             .name("입력 파일의 라인 구분자")
@@ -84,8 +89,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             .name("헤더 존재 여부")
             .description("첫번째 ROW를 헤더로 처리합니다. 이 옵션을 활성화 하면 첫번째 ROW는 출력하지 않습니다.")
             .required(false)
-            .allowableValues("true", "false")
-            .defaultValue("false")
+            .allowableValues(TRUE, FALSE)
+            .defaultValue(FALSE.getValue())
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();
@@ -154,8 +159,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             .name("파일의 유형")
             .description("파일의 유형을 지정합니다. CF, DF, FF를 지정할 수 있습니다.")
             .required(true)
-            .allowableValues("CF", "DF", "FF")
-            .defaultValue("DF")
+            .allowableValues(CF, DF, FF)
+            .defaultValue(DF.getValue())
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
@@ -165,8 +170,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             .description("CSV의 경우 마지막 컬럼 뒤에 컬럼 구분자가 없으나 이 옵션을 체크하면 컬럼 구분자가 포함된 것으로 간주하여, " +
                     "'컬럼 카운트'에서 설정한 값에서 1개를 빼서 검증합니다.")
             .required(false)
-            .allowableValues("true", "false")
-            .defaultValue("false")
+            .allowableValues(TRUE, FALSE)
+            .defaultValue(FALSE.getValue())
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();
@@ -185,8 +190,8 @@ public class MultilineCsvParser extends AbstractProcessor {
             .name("빈 라인 건너뛰기")
             .description("빈 라인은 처리하지 않고 SKIP합니다.")
             .required(false)
-            .allowableValues("true", "false")
-            .defaultValue("false")
+            .allowableValues(TRUE, FALSE)
+            .defaultValue(FALSE.getValue())
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();

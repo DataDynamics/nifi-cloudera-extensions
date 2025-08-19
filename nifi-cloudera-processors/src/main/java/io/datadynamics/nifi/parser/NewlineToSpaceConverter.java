@@ -66,12 +66,11 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 
     @Override
     public void rowProcessed(String[] rows, ParsingContext context) {
-        System.out.println(Joiner.on(COLUMN_SEP).join(rows));
         // 컬럼 카운트를 지정하면 컬럼의 개수를 검증합니다.
         if (columnCountForValidation > 0) {
             if (columnCountForValidation != rows.length) {
                 log.warn(Joiner.on("").join(rows));
-                throw new ProcessException(String.format("컬럼 개수가 일치하지 않습니다. 더이상 처리할 수 없습니다. 초기 컬럼 개수: %s, 현재 컬럼 개수: %s", includeColumnSepAtLastColumn ? columnCountForValidation - 1 : columnCountForValidation, includeColumnSepAtLastColumn ? rows.length - 1 : rows.length));
+                throw new ProcessException(String.format("컬럼 개수가 일치하지 않습니다. 더이상 처리할 수 없습니다. 검증할 컬럼 개수: %s, 현재 컬럼 개수: %s", includeColumnSepAtLastColumn ? columnCountForValidation - 1 : columnCountForValidation, includeColumnSepAtLastColumn ? rows.length - 1 : rows.length));
             }
         }
 
