@@ -52,8 +52,8 @@ public class MultilineCsvParser extends AbstractProcessor {
     static final AllowableValue CF = new AllowableValue("CF", "CF", "CF");
     static final AllowableValue FF = new AllowableValue("FF", "FF", "FF");
 
-    static final AllowableValue TRUE = new AllowableValue("true", "True", "True");
-    static final AllowableValue FALSE = new AllowableValue("false", "False", "False");
+    static final AllowableValue TRUE = new AllowableValue("true", "true", "True");
+    static final AllowableValue FALSE = new AllowableValue("false", "false", "False");
 
     // ---- Input Delimiters ----
     public static final PropertyDescriptor INPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
