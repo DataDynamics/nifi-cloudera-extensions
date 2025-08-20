@@ -48,10 +48,6 @@ public class MultilineCsvParser extends AbstractProcessor {
     public static final char COLUMN_SEP = '\u001F'; // US (Unit Separator)
 
     // ---- Values ----
-    static final AllowableValue DF = new AllowableValue("DF", "DF", "DF");
-    static final AllowableValue CF = new AllowableValue("CF", "CF", "CF");
-    static final AllowableValue FF = new AllowableValue("FF", "FF", "FF");
-
     static final AllowableValue TRUE = new AllowableValue("true", "true", "True");
     static final AllowableValue FALSE = new AllowableValue("false", "false", "False");
 

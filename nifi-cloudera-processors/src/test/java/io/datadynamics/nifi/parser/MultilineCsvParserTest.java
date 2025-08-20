@@ -54,7 +54,7 @@ public class MultilineCsvParserTest {
 
 		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
 		runner.setProperty(MultilineCsvParser.INCLUDE_COLUMN_SEP_AT_LAST_COLUMN, MultilineCsvParser.TRUE.getValue());
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "4");
 
 		String input = "a^|b^|casdf\nasdfasdf^|@@\n";
 		String expected = "a,b,casdf asdfasdf\n";

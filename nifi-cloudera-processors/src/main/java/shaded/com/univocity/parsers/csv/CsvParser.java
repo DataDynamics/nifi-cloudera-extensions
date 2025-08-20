@@ -133,7 +133,7 @@ public final class CsvParser extends AbstractParser<CsvParserSettings> {
                     if (len == 0) {
                         String value = input.getQuotedString(quote, quoteEscape, escapeEscape, maxColumnLength, delimiter, newLine, keepQuotes, keepEscape, trimQuotedLeading, trimQuotedTrailing);
                         if (value != null) {
-                            output.valueParsed(value == "" ? emptyValue : value);
+                            output.valueParsed(value.isEmpty() ? emptyValue : value); // TODO 여기에서 파싱한 컬럼을 추가한다.
                             input.enableNormalizeLineEndings(true);
                             try {
                                 ch = input.nextChar();
@@ -186,7 +186,7 @@ public final class CsvParser extends AbstractParser<CsvParserSettings> {
                         value = input.getString(ch, delimiter, ignoreTrailingWhitespace, nullValue, maxColumnLength);
                     }
                     if (value != null) {
-                        output.valueParsed(value);
+                        output.valueParsed(value); // TODO 여기에서 파싱한 컬럼을 추가한다.
                         ch = input.getChar();
                     } else {
                         if (len != -1) {

@@ -25,7 +25,6 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 	private final AtomicLong rowCounter;
 	private final int columnCount;
 	private int columnCountForValidation;
-	private int lastIndex;
 	private final boolean includeColumnSepAtLastColumn;
 
 	/**
@@ -63,7 +62,6 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 		// CSV 파일과 다르게 마지막 컬럼 뒤에 컬럼 구분자가 오면 CSV 파서는 구분자 다음도 컬럼으로 인지하므로
 		// 컬럼의 총 개수는 +1을 해야 합니다.
 		if (includeColumnSepAtLastColumn) {
-			this.lastIndex = columnCount - 1;
 			this.columnCountForValidation = columnCount + 1;
 			log.info(String.format("마지막 컬럼 뒤에 컬럼 구분자가 포함하는 경우 컬럼의 총 개수는 전체 개수의 +1이 됩니다. 설정한 컬럼의 개수: %s, 보정한 컬럼의 개수: %s", this.columnCount, this.columnCountForValidation));
 		} else {
@@ -74,6 +72,15 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 
 	@Override
 	public void rowProcessed(String[] columns, ParsingContext context) {
+		// 마지막에도 Column Delimiter가 있다면 마지막 컬럼은 제외하도록 한다.
+		String[] refinedColumns = null;
+		StringBuilder sb = new StringBuilder();
+		if (includeColumnSepAtLastColumn) {
+			refinedColumns = Arrays.copyOfRange(columns, 0, Math.max(0, columns.length - 1));
+		} else {
+			refinedColumns = columns;
+		}
+
 		// 컬럼 카운트를 지정하면 컬럼의 개수를 검증합니다.
 		if (columnCount != 0 && columnCountForValidation > 0) {
 			if (columnCountForValidation != columns.length) {
@@ -83,9 +90,10 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 						.append("✔ 현재까지 에러 건수: ").append(c).append("\n")
 						.append("✔ 설정한 컬럼의 개수: ").append(this.columnCount).append("\n")
 						.append("✔ 보정한 컬럼의 개수: ").append(this.columnCountForValidation).append("\n")
-						.append("✔ 파싱한 컬럼의 개수: ").append(columns.length).append("\n")
-						.append("✔ 재조립한 ROW: ").append(Joiner.on(inColSep).join(columns)).append("\n")
-						.append("✔ 재조립한 ROW(Hex): \n").append(PrettyHexDump.prettyHexDump(Joiner.on(inColSep).join(columns).getBytes())).append("\n").toString();
+						.append("✔ 파싱한 컬럼의 개수(보정 O): ").append(columns.length).append("\n")
+						.append("✔ 파싱한 컬럼의 개수(보정 X): ").append(refinedColumns.length).append("\n")
+						.append("✔ 재조립한 ROW: ").append(Joiner.on(inColSep).join(refinedColumns)).append("\n")
+						.append("✔ 재조립한 ROW(Hex): \n").append(PrettyHexDump.prettyHexDump(Joiner.on(inColSep).join(refinedColumns).getBytes())).append("\n").toString();
 				System.out.println(msg);
 				log.warn(msg);
 				if (!this.testMode) {
@@ -93,15 +101,6 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 					throw new ProcessException(String.format("마지막 컬럼 뒤에 컬럼 구분자가 포함하는 경우 컬럼의 총 개수는 전체 개수의 +1이 됩니다. 설정한 컬럼의 개수: %s, 보정한 컬럼의 개수: %s, 파싱한 컬럼의 개수: %s, 재조립한 ROW: %s", this.columnCount, this.columnCountForValidation, columns.length, Joiner.on(inColSep).join(columns)));
 				}
 			}
-		}
-
-		String[] refinedColumns = null;
-		StringBuilder sb = new StringBuilder();
-		if (includeColumnSepAtLastColumn) {
-			// 마지막에도 Column Delimiter가 있다면 마지막 컬럼은 제외하도록 한다.
-			refinedColumns = Arrays.copyOfRange(columns, 0, Math.max(0, columns.length - 1));
-		} else {
-			refinedColumns = columns;
 		}
 
 		for (int i = 0; i < refinedColumns.length; i++) {

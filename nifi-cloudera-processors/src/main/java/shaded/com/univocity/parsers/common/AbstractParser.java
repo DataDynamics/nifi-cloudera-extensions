@@ -144,8 +144,8 @@ public abstract class AbstractParser<T extends CommonParserSettings<?>> {
                     parseRecord();
                 }
 
-                String[] row = output.rowParsed();
-                if (row != null) {
+                String[] columns = output.rowParsed();
+                if (columns != null) {
                     if (recordsToRead >= 0 && context.currentRecord() >= recordsToRead) {
                         context.stop();
                         if (recordsToRead == 0) {
@@ -154,7 +154,7 @@ public abstract class AbstractParser<T extends CommonParserSettings<?>> {
                         }
                     }
                     if (processor != NoopProcessor.instance) {
-                        rowProcessed(row);
+                        rowProcessed(columns);
                     }
                 }
             }
