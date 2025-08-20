@@ -74,7 +74,7 @@ public class MultiDelimiterTranslatingReader extends Reader {
 		}
 		if (c == -1) return -1;
 
-		// 두 종류의 구분자를 우선순위대로 검사 (레코드 → 컬럼)
+		// 문자열에서 지정한 Delimiter를 찾아서 CSV Parser 내부의 Delimiter로 변경한다.
 		int replaced = tryMatchAndReplace(c, recDelim, recRep);
 		if (replaced != Integer.MIN_VALUE) return replaced;
 
