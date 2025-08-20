@@ -70,10 +70,4 @@ public final class PrettyHexDump {
 		}
 		return sb.toString();
 	}
-
-	// 사용 예시
-	public static void main(String[] args) {
-		String s = "Hello, Netty!\n안녕하세요 Line2";
-		System.out.print(PrettyHexDump.prettyHexDump(s));
-	}
 }
