@@ -224,6 +224,8 @@ public class MultilineCsvParser extends AbstractProcessor {
         relationships.add(REL_ORIGINAL);
         relationships.add(REL_FAILURE);
         this.relationships = Collections.unmodifiableSet(relationships);
+
+		Singleton.init(context.getLogger());
     }
 
     @Override
