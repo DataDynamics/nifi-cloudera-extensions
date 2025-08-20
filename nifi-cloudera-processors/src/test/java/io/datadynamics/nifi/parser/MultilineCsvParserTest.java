@@ -9,184 +9,185 @@ import java.nio.charset.StandardCharsets;
 
 public class MultilineCsvParserTest {
 
-    private static TestRunner newRunner() {
-        TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
-        // 기본값: Column "^|" / Line "@@\n"
-        runner.setProperty(MultilineCsvParser.INPUT_COLUMN_DELIMITER, "^|");
-        runner.setProperty(MultilineCsvParser.INPUT_LINE_DELIMITER, "@@\\n");
-        // 기본값: QUOTE="\"" / HAS_HEADER=false / charset=UTF-8
-        return runner;
-    }
+	private static TestRunner newRunner() {
+		TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
+		// 기본값: Column "^|" / Line "@@\n"
+		runner.setProperty(MultilineCsvParser.INPUT_COLUMN_DELIMITER, "^|");
+		runner.setProperty(MultilineCsvParser.INPUT_LINE_DELIMITER, "@@\\n");
+		// 기본값: QUOTE="\"" / HAS_HEADER=false / charset=UTF-8
+		return runner;
+	}
 
-    @Test
-    void multi_header() {
-        TestRunner runner = newRunner();
+	@Test
+	void multi_header() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE);
-        runner.setProperty(MultilineCsvParser.SKIP_HEADER_COUNT, "2");
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE);
+		runner.setProperty(MultilineCsvParser.SKIP_HEADER_COUNT, "2");
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        String input1 = "a^|b^|casdf\nasdfasdf@@\n"
-                + "a^|b^|casdf\nasdfasdf@@\n"
-                + "H1^|H2^|H3@@\n"
-                + "a^|b^|casdf\nasdfasdf@@\n";
-        String expected = "a,b,casdf asdfasdf\n";
+		String input1 = "a^|b^|casdf\nasdfasdf@@\n"
+				+ "a^|b^|casdf\nasdfasdf@@\n"
+				+ "H1^|H2^|H3@@\n"
+				+ "a^|b^|casdf\nasdfasdf@@\n";
+		String expected = "a,b,casdf asdfasdf\n";
 
-        runner.enqueue(input1.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input1.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
-        runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
-        runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
+		runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
+		runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
+		runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "1");
-        out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
-        out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
-        out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
-        out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "1");
+		out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
+		out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
+		out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
+		out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
+	}
 
-    @Test
-    void simple_noHeader_defaults_work_multiline() {
-        TestRunner runner = newRunner();
+	@Test
+	void simple_noHeader_defaults_work_multiline() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "4");
+		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
+		runner.setProperty(MultilineCsvParser.INCLUDE_COLUMN_SEP_AT_LAST_COLUMN, MultilineCsvParser.TRUE.getValue());
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        String input = "a^|b^|casdf\nasdfasdf@@\n";
-        String expected = "a,b,casdf asdfasdf\n";
+		String input = "a^|b^|casdf\nasdfasdf^|@@\n";
+		String expected = "a,b,casdf asdfasdf\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
-        runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
-        runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
+		runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
+		runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
+		runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "1");
-        out.assertAttributeEquals("parsecsv.header.present", "false");
-        out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
-        out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
-        out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "1");
+		out.assertAttributeEquals("parsecsv.header.present", "false");
+		out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
+		out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
+		out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
+	}
 
-    @Test
-    void simple_noHeader_defaults_work() {
-        TestRunner runner = newRunner();
+	@Test
+	void simple_noHeader_defaults_work() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        String input = "a^|b^|c@@\n1^|2^|3@@\n";
-        String expected = "a,b,c\n1,2,3\n";
+		String input = "a^|b^|c@@\n1^|2^|3@@\n";
+		String expected = "a,b,c\n1,2,3\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
-        runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
-        runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
+		runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
+		runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
+		runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "2");
-        out.assertAttributeEquals("parsecsv.header.present", "false");
-        out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
-        out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
-        out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "2");
+		out.assertAttributeEquals("parsecsv.header.present", "false");
+		out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
+		out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
+		out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
+	}
 
-    @Test
-    void header_is_skipped_and_not_counted() {
-        TestRunner runner = newRunner();
+	@Test
+	void header_is_skipped_and_not_counted() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE.getValue());
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
+		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE.getValue());
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
 
-        String input = "H1^|H2@@\n1^|2@@\n3^|4@@\n";
-        String expected = "1,2\n3,4\n";
+		String input = "H1^|H2@@\n1^|2@@\n3^|4@@\n";
+		String expected = "1,2\n3,4\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "2");
-        out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "2");
+		out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
+	}
 
-    @Test
-    void quotes_protect_delimiters_and_double_quote_is_unescaped() {
-        TestRunner runner = newRunner();
+	@Test
+	void quotes_protect_delimiters_and_double_quote_is_unescaped() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+		runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        // 기본 quote = '"'
-        String input = "foo^|\"bar^|baz\"^|\"He said \"\"Hi\"\"\"@@\n";
-        String expected = "foo,bar^|baz,He said \"Hi\"\n";
+		// 기본 quote = '"'
+		String input = "foo^|\"bar^|baz\"^|\"He said \"\"Hi\"\"\"@@\n";
+		String expected = "foo,bar^|baz,He said \"Hi\"\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "1");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "1");
+	}
 
-    @Test
-    void disable_quotes_treats_quote_as_literal() {
-        TestRunner runner = newRunner();
+	@Test
+	void disable_quotes_treats_quote_as_literal() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
+		runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
 
-        String input = "\"a\"^|\"b\"@@\n";
-        String expected = "a,b\n";
+		String input = "\"a\"^|\"b\"@@\n";
+		String expected = "a,b\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "1");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "1");
+	}
 
-    @Test
-    void eof_without_trailing_line_delimiter_writes_last_row() {
-        TestRunner runner = newRunner();
+	@Test
+	void eof_without_trailing_line_delimiter_writes_last_row() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        String input = "x^|y^|z"; // 마지막 @@\n 없음
-        String expected = "x,y,z\n";
+		String input = "x^|y^|z"; // 마지막 @@\n 없음
+		String expected = "x,y,z\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "1");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "1");
+	}
 
-    @Test
-    void empty_fields_and_consecutive_column_delimiters() {
-        TestRunner runner = newRunner();
+	@Test
+	void empty_fields_and_consecutive_column_delimiters() {
+		TestRunner runner = newRunner();
 
-        runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
 
-        String input = "^|mid^|@@\n"; // "", "mid", ""  (3필드)
-        String expected = ",mid,\n";
+		String input = "^|mid^|@@\n"; // "", "mid", ""  (3필드)
+		String expected = ",mid,\n";
 
-        runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-        runner.run();
+		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
+		runner.run();
 
-        MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-        out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-        out.assertAttributeEquals("parsecsv.record.count", "1");
-    }
+		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
+		out.assertAttributeEquals("parsecsv.record.count", "1");
+	}
 }

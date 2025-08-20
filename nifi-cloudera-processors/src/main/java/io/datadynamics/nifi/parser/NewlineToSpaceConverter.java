@@ -1,7 +1,6 @@
 package io.datadynamics.nifi.parser;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.exception.ProcessException;
 import shaded.com.univocity.parsers.common.ParsingContext;
@@ -9,6 +8,7 @@ import shaded.com.univocity.parsers.common.processor.AbstractRowProcessor;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static io.datadynamics.nifi.parser.MultilineCsvParser.COLUMN_SEP;
@@ -25,6 +25,7 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 	private final AtomicLong rowCounter;
 	private final int columnCount;
 	private int columnCountForValidation;
+	private int lastIndex;
 	private final boolean includeColumnSepAtLastColumn;
 
 	/**
@@ -62,6 +63,7 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 		// CSV 파일과 다르게 마지막 컬럼 뒤에 컬럼 구분자가 오면 CSV 파서는 구분자 다음도 컬럼으로 인지하므로
 		// 컬럼의 총 개수는 +1을 해야 합니다.
 		if (includeColumnSepAtLastColumn) {
+			this.lastIndex = columnCount - 1;
 			this.columnCountForValidation = columnCount + 1;
 			log.info(String.format("마지막 컬럼 뒤에 컬럼 구분자가 포함하는 경우 컬럼의 총 개수는 전체 개수의 +1이 됩니다. 설정한 컬럼의 개수: %s, 보정한 컬럼의 개수: %s", this.columnCount, this.columnCountForValidation));
 		} else {
@@ -93,11 +95,19 @@ public class NewlineToSpaceConverter extends AbstractRowProcessor {
 			}
 		}
 
+		String[] refinedColumns = null;
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < columns.length; i++) {
+		if (includeColumnSepAtLastColumn) {
+			// 마지막에도 Column Delimiter가 있다면 마지막 컬럼은 제외하도록 한다.
+			refinedColumns = Arrays.copyOfRange(columns, 0, Math.max(0, columns.length - 1));
+		} else {
+			refinedColumns = columns;
+		}
+
+		for (int i = 0; i < refinedColumns.length; i++) {
 			// 컬럼의 크기가 고정이 아닌 가변일 때
-			sb.append(columns[i].replace("\r\n", " ").replace("\n", " ").replace("" + COLUMN_SEP, inColSep));
-			if (i < columns.length - 1) {
+			sb.append(refinedColumns[i].replace("\r\n", " ").replace("\n", " ").replace("" + COLUMN_SEP, inColSep));
+			if (i < refinedColumns.length - 1) {
 				sb.append(outColSep);
 			}
 		}
