@@ -30,6 +30,9 @@ public class MultiDelimiterTranslatingReader extends Reader {
 	 */
 	private final String colDelim;
 
+	/**
+	 * Pushback Reader
+	 */
 	private final PushbackReader in;
 
 	/**
