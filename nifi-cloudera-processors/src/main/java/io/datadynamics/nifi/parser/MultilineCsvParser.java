@@ -145,6 +145,16 @@ public class MultilineCsvParser extends AbstractProcessor {
             .build();
 
     // ---- ETC ----
+    public static final PropertyDescriptor TEST_MODE = new PropertyDescriptor.Builder()
+		    .name("테스트 모드로 동작")
+		    .description("테스트 모드로 동작하면 실제 파일을 생성하지 않고 검증하는 과정을 진행합니다. 검증 결과는 출력 FlowFile의 attributes를 확인하도록 합니다.")
+		    .required(false)
+		    .allowableValues(TRUE, FALSE)
+		    .defaultValue(FALSE.getValue())
+		    .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+		    .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
+		    .build();
+
     public static final PropertyDescriptor COLUMN_COUNT = new PropertyDescriptor.Builder()
             .name("컬럼 카운트")
             .description("컬럼 카운트를 검증합니다. 이 값을 0보다 큰 값을 지정하면 CSV 파싱후 컬럼의 개수를 검증합니다. " +
@@ -153,16 +163,6 @@ public class MultilineCsvParser extends AbstractProcessor {
             .defaultValue("0")
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
-
-    public static final PropertyDescriptor FILE_TYPE = new PropertyDescriptor.Builder()
-            .name("파일의 유형")
-            .description("파일의 유형을 지정합니다. CF, DF, FF를 지정할 수 있습니다.")
-            .required(true)
-            .allowableValues(CF, DF, FF)
-            .defaultValue(DF.getValue())
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
 
     public static final PropertyDescriptor INCLUDE_COLUMN_SEP_AT_LAST_COLUMN = new PropertyDescriptor.Builder()
@@ -174,16 +174,6 @@ public class MultilineCsvParser extends AbstractProcessor {
             .defaultValue(FALSE.getValue())
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-            .build();
-
-    public static final PropertyDescriptor FIXED_SIZE_COLUMN = new PropertyDescriptor.Builder()
-            .name("전체 컬럼의 길이의 합")
-            .description("각 컬럼의 크기(bytes)의 합이 일치하는지 검증합니다." +
-                    "단, UTF로 가정하지 않고 Character의 개수를 검증하도록 합니다.")
-            .required(false)
-            .defaultValue("0")
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
             .build();
 
     public static final PropertyDescriptor SKIP_EMPTY_LINE = new PropertyDescriptor.Builder()
@@ -218,14 +208,13 @@ public class MultilineCsvParser extends AbstractProcessor {
     @Override
     protected void init(final org.apache.nifi.processor.ProcessorInitializationContext context) {
         final List<PropertyDescriptor> descriptors = new ArrayList<>();
-        descriptors.add(FILE_TYPE);
+        descriptors.add(TEST_MODE);
         descriptors.add(INPUT_LINE_DELIMITER);
         descriptors.add(INPUT_COLUMN_DELIMITER);
         descriptors.add(QUOTE_CHAR);
         descriptors.add(HAS_HEADER);
         descriptors.add(SKIP_HEADER_COUNT);
         descriptors.add(COLUMN_COUNT);
-        descriptors.add(FIXED_SIZE_COLUMN);
         descriptors.add(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN);
         descriptors.add(INPUT_CHARACTER_SET);
         descriptors.add(OUTPUT_CHARACTER_SET);
@@ -260,7 +249,7 @@ public class MultilineCsvParser extends AbstractProcessor {
         if (ff == null) return;
 
         // 사용자가 입력한 파라미터 값들
-        final String fileType = context.getProperty(FILE_TYPE).evaluateAttributeExpressions(ff).getValue();
+	    final boolean testMode = context.getProperty(TEST_MODE).evaluateAttributeExpressions(ff).asBoolean();
         final String lineDelimRaw = context.getProperty(INPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String colDelimRaw = context.getProperty(INPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
         final String quoteRaw = context.getProperty(QUOTE_CHAR).evaluateAttributeExpressions(ff).getValue();
@@ -269,7 +258,6 @@ public class MultilineCsvParser extends AbstractProcessor {
         final int columnCount = context.getProperty(COLUMN_COUNT).evaluateAttributeExpressions(ff).asInteger();
         final boolean includeColumnSepAtLastColumn = context.getProperty(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN).evaluateAttributeExpressions(ff).asBoolean();
         final boolean skipEmptyLine = context.getProperty(SKIP_EMPTY_LINE).evaluateAttributeExpressions(ff).asBoolean();
-        final int fixedSizeOfColumn = context.getProperty(FIXED_SIZE_COLUMN).evaluateAttributeExpressions(ff).asInteger();
         final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
         final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
         final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
@@ -285,17 +273,6 @@ public class MultilineCsvParser extends AbstractProcessor {
             settings.setNumberOfRowsToSkip(skipHeaderCount);
         }
 
-        // Validation
-        if (("CF".equals(fileType) || "DF".equals(fileType)) && columnCount < 1) {
-            throw new ProcessException("파일 유형이 CF, DF 유형이라면 검증할 컬럼의 개수는 1 이상이어야 합니다.");
-        }
-
-        if ("FF".equals(fileType)) {
-            if (fixedSizeOfColumn > 0) {
-                throw new ProcessException("파일의 유형이 FF 형식이라면 '전체 컬럼의 길이의 합'을 지정해야 합니다.");
-            }
-        }
-
         // 입력한 값들에 대한 escape를 처리합니다.
         final String lineDelim = unescape(lineDelimRaw);
         final String colDelim = unescape(colDelimRaw);
@@ -304,6 +281,7 @@ public class MultilineCsvParser extends AbstractProcessor {
         final String outColDelim = unescape(outColRaw);
 
         final AtomicLong rowCounter = new AtomicLong(0);
+        final AtomicLong errorCounter = new AtomicLong(0);
 
         // Downstream으로 전달할 FlowFile을 생성합니다.
         FlowFile out = session.create(ff);
@@ -330,7 +308,7 @@ public class MultilineCsvParser extends AbstractProcessor {
                         // CSV Parser를 실행합니다. 실제 처리는 RowProcessor를 사용합니다.
                         // CSV Parser가 파싱한 컬럼을 특수하게 처리하고자 하는 경우 Row Processor를 구현하여 적용하도록 합니다.
                         NewlineToSpaceConverter rowProcessor = new NewlineToSpaceConverter(colDelim, outLineDelim, outColDelim,
-                                writer, rowCounter, columnCount, includeColumnSepAtLastColumn, fixedSizeOfColumn, log);
+                                writer, rowCounter, columnCount, includeColumnSepAtLastColumn, log, errorCounter, testMode);
                         settings.setProcessor(rowProcessor);
 
                         CsvParser parser = new CsvParser(settings);
@@ -345,6 +323,7 @@ public class MultilineCsvParser extends AbstractProcessor {
 
             final Map<String, String> attrs = new HashMap<>();
             attrs.put("parsecsv.record.count", String.valueOf(rowCounter.get()));
+            attrs.put("parsecsv.record.error.count", String.valueOf(errorCounter));
             attrs.put("parsecsv.header.present", String.valueOf(hasHeader));
             attrs.put("parsecsv.input.line.delimiter", printable(lineDelim));
             attrs.put("parsecsv.input.column.delimiter", printable(colDelim));
