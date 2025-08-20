@@ -68,7 +68,8 @@ public class MultiDelimiterTranslatingReader extends Reader {
 	@Override
 	public int read() throws IOException {
 		int c = in.read();
-		if (c == '\u001F') { // TODO 문자열내에 특수 문자가 포함되면 Line Delimiter로 인식할 수 있다.
+		if (c == MultilineCsvParser.COLUMN_SEP || c == MultilineCsvParser.RECORD_SEP) {
+			// TODO 문자열내에 Parser 내부에서 사용하는 Delimiter 사용시 처리하지 않도록 한다.
 			return -1;
 		}
 		if (c == -1) return -1;
