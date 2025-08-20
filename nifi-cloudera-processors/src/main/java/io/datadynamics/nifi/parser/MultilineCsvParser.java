@@ -325,7 +325,7 @@ public class MultilineCsvParser extends AbstractProcessor {
             attrs.put("parsecsv.input.column.delimiter", printable(colDelim));
             attrs.put("parsecsv.output.line.delimiter", printable(outLineDelim));
             attrs.put("parsecsv.output.column.delimiter", printable(outColDelim));
-            attrs.put("mime.type", "text/plain; charset=" + outCharset.name());
+            attrs.put("parsecsv.output.encoding", outCharset.name());
 
             log.info("FlowFile을 downstream으로 전달합니다. FlowFile의 attributes: {}", attrs);
 
