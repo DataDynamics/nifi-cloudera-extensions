@@ -3,191 +3,252 @@ package io.datadynamics.nifi.parser;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 public class MultilineCsvParserTest {
 
-	private static TestRunner newRunner() {
-		TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
-		// 기본값: Column "^|" / Line "@@\n"
-		runner.setProperty(MultilineCsvParser.INPUT_COLUMN_DELIMITER, "^|");
-		runner.setProperty(MultilineCsvParser.INPUT_LINE_DELIMITER, "@@\\n");
-		// 기본값: QUOTE="\"" / HAS_HEADER=false / charset=UTF-8
-		return runner;
-	}
+    @TempDir
+    Path tmpDir;
 
-	@Test
-	void multi_header() {
-		TestRunner runner = newRunner();
+    private static final String IN_COL = "^|";
+    private static final String IN_ROW = "@@\n";
 
-		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE);
-		runner.setProperty(MultilineCsvParser.SKIP_HEADER_COUNT, "2");
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+    /* -------------------- 유틸 -------------------- */
 
-		String input1 = "a^|b^|casdf\nasdfasdf@@\n"
-				+ "a^|b^|casdf\nasdfasdf@@\n"
-				+ "H1^|H2^|H3@@\n"
-				+ "a^|b^|casdf\nasdfasdf@@\n";
-		String expected = "a,b,casdf asdfasdf\n";
+    /**
+     * 지정한 구분자/인코딩으로 파일에 행들을 씁니다.
+     */
+    private static void writeRowsToFile(Path path, Charset cs, String colDelim, String rowDelim, List<List<String>> rows) throws IOException {
+        try (BufferedWriter w = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path), cs), 8192)) {
+            for (List<String> r : rows) {
+                for (int i = 0; i < r.size(); i++) {
+                    if (i > 0) w.write(colDelim);
+                    w.write(r.get(i));
+                }
+                w.write(rowDelim);
+            }
+            w.flush();
+        }
+    }
 
-		runner.enqueue(input1.getBytes(StandardCharsets.UTF_8));
-		runner.run();
+    private static int countToken(String text, String token) {
+        int cnt = 0, from = 0;
+        while (true) {
+            int idx = text.indexOf(token, from);
+            if (idx < 0) break;
+            cnt++;
+            from = idx + token.length();
+        }
+        return cnt;
+    }
 
-		runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
-		runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
-		runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
+    private static List<String> header10() {
+        return Arrays.asList("id", "name", "city", "amount", "date", "status", "memo", "note", "json", "email");
+    }
 
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "1");
-		out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
-		out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
-		out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
-		out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
-	}
+    /* -------------------- 테스트 -------------------- */
 
-	@Test
-	void simple_noHeader_defaults_work_multiline() {
-		TestRunner runner = newRunner();
+    /**
+     * 파일: CP949 → UTF-8 변환 + 선행 2행 스킵 후 헤더를 첫 행으로 기록
+     */
+    @Test
+    public void file_cp949_to_utf8_skip2_then_header_first() throws Exception {
+        Path in = tmpDir.resolve("in_cp949.dat");
+        Path out = tmpDir.resolve("out_utf8.dat"); // (검증용으로 저장하지 않아도 되지만 경로만 확보)
 
-		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
-		runner.setProperty(MultilineCsvParser.INCLUDE_COLUMN_SEP_AT_LAST_COLUMN, MultilineCsvParser.TRUE.getValue());
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "4");
+        writeRowsToFile(in, Charset.forName("CP949"), IN_COL, IN_ROW, Arrays.asList(
+                Arrays.asList("SKIP1", "x"),
+                Arrays.asList("SKIP2", "y"),
+                header10(),
+                Arrays.asList("1", "사용자1", "Seoul", "10.50", "2025-08-01", "ACTIVE", "메모", "노트", "{\"k\":\"v1\"}", "user1@example.com"),
+                Arrays.asList("2", "사용자2", "Busan", "22.00", "2025-08-02", "PENDING", "메모2", "노트2", "텍스트", "user2@example.com")
+        ));
 
-		String input = "a^|b^|casdf\nasdfasdf^|@@\n";
-		String expected = "a,b,casdf asdfasdf\n";
+        TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
+        runner.setProperty(MultilineCsvParser.INPUT_CHARSET, "CP949");
+        runner.setProperty(MultilineCsvParser.OUTPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.IN_COL_DELIM, IN_COL);
+        runner.setProperty(MultilineCsvParser.IN_ROW_DELIM, IN_ROW);
+        runner.setProperty(MultilineCsvParser.OUT_COL_DELIM, IN_COL);
+        runner.setProperty(MultilineCsvParser.OUT_ROW_DELIM, IN_ROW);
+        runner.setProperty(MultilineCsvParser.IN_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE_MODE, "AS_NEEDED");
+        runner.setProperty(MultilineCsvParser.PRESERVE_INPUT_QUOTES, "true");
+        runner.setProperty(MultilineCsvParser.EXPECTED_COLUMNS, "10");
+        runner.setProperty(MultilineCsvParser.SKIP_LEADING_ROWS, "2");
+        runner.setProperty(MultilineCsvParser.READ_HEADER_AFTER_SKIP, "true");
+        // Row Processor Class 미지정 → 가공 없음
 
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
+        // 파일을 "실제 파일에서 읽어" enqueue
+        runner.enqueue(Files.newInputStream(in));
+        runner.run();
 
-		runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
-		runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
-		runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
+        runner.assertAllFlowFilesTransferred(MultilineCsvParser.REL_SUCCESS, 1);
+        MockFlowFile outFF = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+        String outText = new String(outFF.toByteArray(), StandardCharsets.UTF_8);
 
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "1");
-		out.assertAttributeEquals("parsecsv.header.present", "false");
-		out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
-		out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
-		out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
-	}
+        String expectedHeader = String.join(IN_COL, header10()) + IN_ROW;
+        Assertions.assertTrue(outText.startsWith(expectedHeader), "헤더가 출력 첫 행이어야 함");
+        Assertions.assertFalse(outText.contains("SKIP1"));
+        Assertions.assertFalse(outText.contains("SKIP2"));
+        Assertions.assertTrue(outText.contains("사용자1"));
 
-	@Test
-	void simple_noHeader_defaults_work() {
-		TestRunner runner = newRunner();
+        outFF.assertAttributeEquals("csv.rows.skipped", "2");
+        outFF.assertAttributeEquals("csv.rows.header", "1");
+        outFF.assertAttributeEquals("csv.rows.data.in", "2");
+        outFF.assertAttributeEquals("csv.rows.data.out", "2");
+    }
 
-		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.FALSE.getValue());
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+    /**
+     * 파일: 컬럼 수 불일치 시 failure 라우트 + csv.error 포함
+     */
+    @Test
+    public void file_expectedColumnsMismatch_failure() throws Exception {
+        Path in = tmpDir.resolve("in_mismatch.dat");
 
-		String input = "a^|b^|c@@\n1^|2^|3@@\n";
-		String expected = "a,b,c\n1,2,3\n";
+        writeRowsToFile(in, StandardCharsets.UTF_8, IN_COL, IN_ROW, Arrays.asList(
+                header10(), // 10개
+                Arrays.asList("1", "사용자1", "Seoul", "10.50", "2025-08-01", "ACTIVE", "메모", "노트", "{\"k\":\"v1\"}") // 9개
+        ));
 
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
+        TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
+        runner.setProperty(MultilineCsvParser.INPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.OUTPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.IN_COL_DELIM, IN_COL);
+        runner.setProperty(MultilineCsvParser.IN_ROW_DELIM, IN_ROW);
+        runner.setProperty(MultilineCsvParser.OUT_COL_DELIM, IN_COL);
+        runner.setProperty(MultilineCsvParser.OUT_ROW_DELIM, IN_ROW);
+        runner.setProperty(MultilineCsvParser.IN_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE_MODE, "AS_NEEDED");
+        runner.setProperty(MultilineCsvParser.PRESERVE_INPUT_QUOTES, "true");
+        runner.setProperty(MultilineCsvParser.EXPECTED_COLUMNS, "10");
+        runner.setProperty(MultilineCsvParser.SKIP_LEADING_ROWS, "0");
+        runner.setProperty(MultilineCsvParser.READ_HEADER_AFTER_SKIP, "true");
 
-		runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 1);
-		runner.assertTransferCount(MultilineCsvParser.REL_ORIGINAL, 1);
-		runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 0);
+        runner.enqueue(Files.newInputStream(in));
+        runner.run();
 
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "2");
-		out.assertAttributeEquals("parsecsv.header.present", "false");
-		out.assertAttributeEquals("parsecsv.input.line.delimiter", "@@\\n");
-		out.assertAttributeEquals("parsecsv.input.column.delimiter", "^|");
-		out.assertAttributeEquals("mime.type", "text/plain; charset=UTF-8");
-	}
+        runner.assertTransferCount(MultilineCsvParser.REL_SUCCESS, 0);
+        runner.assertTransferCount(MultilineCsvParser.REL_FAILURE, 1);
 
-	@Test
-	void header_is_skipped_and_not_counted() {
-		TestRunner runner = newRunner();
+        MockFlowFile ff = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_FAILURE).get(0);
+        ff.assertAttributeExists("csv.error");
+        String err = ff.getAttribute("csv.error");
+        Assertions.assertTrue(err.contains("Column count mismatch") || err.contains("Header column count mismatch"));
+    }
 
-		runner.setProperty(MultilineCsvParser.HAS_HEADER, MultilineCsvParser.TRUE.getValue());
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
+    /**
+     * 파일: 출력 구분자 변경이 제대로 반영되는지
+     */
+    @Test
+    public void file_outputDelimiters_applied() throws Exception {
+        Path in = tmpDir.resolve("in_outdelim.dat");
 
-		String input = "H1^|H2@@\n1^|2@@\n3^|4@@\n";
-		String expected = "1,2\n3,4\n";
+        writeRowsToFile(in, StandardCharsets.UTF_8, IN_COL, IN_ROW, Arrays.asList(
+                header10(),
+                Arrays.asList("1", "Alice", "Seoul", "10.00", "2025-08-01", "ACTIVE", "memo", "note", "txt", "a@example.com")
+        ));
 
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
+        final String OUT_COL = "||";
+        final String OUT_ROW = "##\n";
 
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "2");
-		out.assertAttributeEquals("parsecsv.header.present", MultilineCsvParser.TRUE.getValue());
-	}
+        TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
+        runner.setProperty(MultilineCsvParser.INPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.OUTPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.IN_COL_DELIM, IN_COL);
+        runner.setProperty(MultilineCsvParser.IN_ROW_DELIM, IN_ROW);
+        runner.setProperty(MultilineCsvParser.OUT_COL_DELIM, OUT_COL);
+        runner.setProperty(MultilineCsvParser.OUT_ROW_DELIM, OUT_ROW);
+        runner.setProperty(MultilineCsvParser.IN_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE_MODE, "AS_NEEDED");
+        runner.setProperty(MultilineCsvParser.PRESERVE_INPUT_QUOTES, "true");
+        runner.setProperty(MultilineCsvParser.EXPECTED_COLUMNS, "10");
+        runner.setProperty(MultilineCsvParser.SKIP_LEADING_ROWS, "0");
+        runner.setProperty(MultilineCsvParser.READ_HEADER_AFTER_SKIP, "true");
 
-	@Test
-	void quotes_protect_delimiters_and_double_quote_is_unescaped() {
-		TestRunner runner = newRunner();
+        runner.enqueue(Files.newInputStream(in));
+        runner.run();
 
-		runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
+        runner.assertAllFlowFilesTransferred(MultilineCsvParser.REL_SUCCESS, 1);
+        MockFlowFile ff = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+        String outText = ff.getContent();
 
-		// 기본 quote = '"'
-		String input = "foo^|\"bar^|baz\"^|\"He said \"\"Hi\"\"\"@@\n";
-		String expected = "foo,bar^|baz,He said \"Hi\"\n";
+        String expectedHeader = String.join(OUT_COL, header10()) + OUT_ROW;
+        Assertions.assertTrue(outText.startsWith(expectedHeader), "헤더는 출력 구분자 사용");
+        Assertions.assertTrue(outText.contains("Alice"));
+        Assertions.assertFalse(outText.contains(IN_COL), "입력 컬럼 구분자가 결과에 남으면 안 됨");
+        Assertions.assertFalse(outText.contains(IN_ROW), "입력 행 구분자가 결과에 남으면 안 됨");
+    }
 
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
+    /**
+     * 파일: 필드 중간의 '\n'은 행 경계를 깨면 안 됨 (커스텀 EOR 토큰 사용)
+     */
+    @Test
+    public void file_randomNewlines_doNotBreakParsing() throws Exception {
+        Path in = tmpDir.resolve("in_random_newlines.dat");
 
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "1");
-	}
+        String COL = "^|";
+        String EOR = "<<EOR>>\n";
 
-	@Test
-	void disable_quotes_treats_quote_as_literal() {
-		TestRunner runner = newRunner();
+        // 헤더 + 데이터 100행(일부 컬럼에 임의로 \n 삽입)
+        int rows = 100;
+        List<List<String>> all = new java.util.ArrayList<>();
+        all.add(header10());
+        java.util.Random rnd = new java.util.Random(7);
+        for (int i = 1; i <= rows; i++) {
+            String c1 = "사용자" + i;
+            if (rnd.nextDouble() < 0.4) { // 가끔 줄바꿈 삽입
+                int pos = 1 + rnd.nextInt(c1.length() - 1);
+                c1 = c1.substring(0, pos) + "\n" + c1.substring(pos);
+            }
+            String memo = (i % 5 == 0) ? ("메모" + COL + "포함") : "메모";
+            if (rnd.nextDouble() < 0.25) {
+                memo = memo + "\n추가";
+            }
+            all.add(Arrays.asList(
+                    String.valueOf(i), c1, "Seoul", "10.00", "2025-08-01", "ACTIVE", memo, "note", "txt", "a" + i + "@ex.com"
+            ));
+        }
+        writeRowsToFile(in, StandardCharsets.UTF_8, COL, EOR, all);
 
-		runner.setProperty(MultilineCsvParser.QUOTE_CHAR, "\""); // quoting 해제
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "2");
+        TestRunner runner = TestRunners.newTestRunner(new MultilineCsvParser());
+        runner.setProperty(MultilineCsvParser.INPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.OUTPUT_CHARSET, "UTF-8");
+        runner.setProperty(MultilineCsvParser.IN_COL_DELIM, COL);
+        runner.setProperty(MultilineCsvParser.IN_ROW_DELIM, EOR);
+        runner.setProperty(MultilineCsvParser.OUT_COL_DELIM, COL);
+        runner.setProperty(MultilineCsvParser.OUT_ROW_DELIM, EOR);
+        runner.setProperty(MultilineCsvParser.IN_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE, "\"");
+        runner.setProperty(MultilineCsvParser.OUT_QUOTE_MODE, "AS_NEEDED");
+        runner.setProperty(MultilineCsvParser.PRESERVE_INPUT_QUOTES, "true");
+        runner.setProperty(MultilineCsvParser.EXPECTED_COLUMNS, "10");
+        runner.setProperty(MultilineCsvParser.SKIP_LEADING_ROWS, "0");
+        runner.setProperty(MultilineCsvParser.READ_HEADER_AFTER_SKIP, "false"); // 헤더를 일반 데이터로 둘 수도 있음
 
-		String input = "\"a\"^|\"b\"@@\n";
-		String expected = "a,b\n";
+        runner.enqueue(Files.newInputStream(in));
+        runner.run();
 
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
+        runner.assertAllFlowFilesTransferred(MultilineCsvParser.REL_SUCCESS, 1);
+        MockFlowFile ff = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
+        String outText = ff.getContent();
 
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "1");
-	}
-
-	@Test
-	void eof_without_trailing_line_delimiter_writes_last_row() {
-		TestRunner runner = newRunner();
-
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
-
-		String input = "x^|y^|z"; // 마지막 @@\n 없음
-		String expected = "x,y,z\n";
-
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
-
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "1");
-	}
-
-	@Test
-	void empty_fields_and_consecutive_column_delimiters() {
-		TestRunner runner = newRunner();
-
-		runner.setProperty(MultilineCsvParser.COLUMN_COUNT, "3");
-
-		String input = "^|mid^|@@\n"; // "", "mid", ""  (3필드)
-		String expected = ",mid,\n";
-
-		runner.enqueue(input.getBytes(StandardCharsets.UTF_8));
-		runner.run();
-
-		MockFlowFile out = runner.getFlowFilesForRelationship(MultilineCsvParser.REL_SUCCESS).get(0);
-		out.assertContentEquals(expected, StandardCharsets.UTF_8.name());
-		out.assertAttributeEquals("parsecsv.record.count", "1");
-	}
+        // 헤더 1 + 데이터 100 = 101개의 EOR 토큰이 있어야 함
+        Assertions.assertEquals(101, countToken(outText, EOR));
+    }
 }

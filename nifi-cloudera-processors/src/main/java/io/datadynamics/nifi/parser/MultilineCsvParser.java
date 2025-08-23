@@ -1,231 +1,199 @@
 package io.datadynamics.nifi.parser;
 
-
-import org.apache.nifi.annotation.behavior.*;
-import org.apache.nifi.annotation.behavior.InputRequirement.Requirement;
+import org.apache.nifi.annotation.behavior.InputRequirement;
+import org.apache.nifi.annotation.behavior.SupportsBatching;
+import org.apache.nifi.annotation.behavior.WritesAttribute;
+import org.apache.nifi.annotation.behavior.WritesAttributes;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
-import org.apache.nifi.components.*;
+import org.apache.nifi.components.AllowableValue;
+import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.logging.ComponentLog;
-import org.apache.nifi.processor.AbstractProcessor;
-import org.apache.nifi.processor.ProcessContext;
-import org.apache.nifi.processor.ProcessSession;
-import org.apache.nifi.processor.Relationship;
+import org.apache.nifi.processor.*;
 import org.apache.nifi.processor.exception.ProcessException;
+import org.apache.nifi.processor.io.StreamCallback;
 import org.apache.nifi.processor.util.StandardValidators;
-import shaded.com.univocity.parsers.csv.CsvFormat;
-import shaded.com.univocity.parsers.csv.CsvParser;
-import shaded.com.univocity.parsers.csv.CsvParserSettings;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-
-@EventDriven
+@Tags({"csv", "multiline", "parser", "stream", "custom-delimiter"})
+@CapabilityDescription("멀티라인 CSV를 커스텀 구분자/인코딩/Quote로 스트리밍 파싱 후 저장. " +
+        "선행 N행 스킵, 그 다음 1행을 헤더로 읽어 출력의 첫 행으로 기록. " +
+        "expectedColumns 불일치 시 실패. 정규식 미사용. ")
+@InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
 @SupportsBatching
-@InputRequirement(Requirement.INPUT_REQUIRED)
-@Tags({"cloudera", "csv", "parse", "delimiter", "multi-character"})
-@CapabilityDescription("라인과 컬럼 구분자가 모두 다문자 문자열이면서 2바이트 이상인 CSV 파일을 파싱하고, 컬럼값에 라인 구분자가 포함된 경우 Space 문자로 변경합니다. " +
-        "선택적으로 헤더 행과 Quote을 지원하며(RFC4180 유사: 따옴표 문자는 두 번 연속으로 사용하여 이스케이프), 하나의 FlowFile을 출력합니다.")
 @WritesAttributes({
-        @WritesAttribute(attribute = "parsecsv.record.count", description = "파싱한 레코드 수(헤더 제외)"),
-        @WritesAttribute(attribute = "parsecsv.header.present", description = "첫 번째 행을 헤더로 처리했다면 true"),
-        @WritesAttribute(attribute = "parsecsv.input.line.delimiter", description = "입력 라인 구분자(이스케이프 해제 후)"),
-        @WritesAttribute(attribute = "parsecsv.input.column.delimiter", description = "입력 컬럼 구분자(이스케이프 해제 후)"),
-        @WritesAttribute(attribute = "parsecsv.output.line.delimiter", description = "출력 라인 구분자(이스케이프 해제 후)"),
-        @WritesAttribute(attribute = "parsecsv.output.column.delimiter", description = "출력 컬럼 구분자(이스케이프 해제 후)"),
-        @WritesAttribute(attribute = "mime.type", description = "MIME Type")
+        @WritesAttribute(attribute = "csv.rows.skipped", description = "스킵된 레코드 수"),
+        @WritesAttribute(attribute = "csv.rows.header", description = "헤더 기록 여부(0/1)"),
+        @WritesAttribute(attribute = "csv.rows.data.in", description = "입력 데이터 레코드 수(헤더 제외)"),
+        @WritesAttribute(attribute = "csv.rows.data.out", description = "출력 데이터 레코드 수"),
+        @WritesAttribute(attribute = "csv.error", description = "실패 시 에러 메시지")
 })
 public class MultilineCsvParser extends AbstractProcessor {
 
-    // ---- Constants ----
-    public static final char RECORD_SEP = '\u001E'; // RS (Record Separator)
-    public static final char COLUMN_SEP = '\u001F'; // US (Unit Separator)
-
-    // ---- Values ----
-    static final AllowableValue TRUE = new AllowableValue("true", "true", "True");
-    static final AllowableValue FALSE = new AllowableValue("false", "false", "False");
-
-    // ---- Input Delimiters ----
-    public static final PropertyDescriptor INPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
-            .name("입력 파일의 라인 구분자")
-            .description("입력 파일의 멀티 문자 기반의 라인 구분자. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
-            .required(true)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .defaultValue("@@\\n")
-            .build();
-
-    public static final PropertyDescriptor INPUT_COLUMN_DELIMITER = new PropertyDescriptor.Builder()
-            .name("입력 파일의 컬럼 구분자")
-            .description("입력 파일의 멀티 문자 기반의 컬럼 구분자. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
-            .required(true)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .defaultValue("^|")
-            .build();
-
-    // ---- Quoting & Header ----
-    public static final PropertyDescriptor QUOTE_CHAR = new PropertyDescriptor.Builder()
-            .name("Quote 문자")
-            .description("옵션으로 사용하는 컬럼의 인용 문자. 빈값으로 놔두면 적용하지 않습니다. " +
-                    "만약에 설정한다면 (e.g. '\"'), 인용 문자로 감싸있는 필드 내부의 구분자는 무시합니다. 중복으로 (\"\") 사용하면 이스케이프 처리합니다.")
-            .required(false)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(new SingleCharAfterUnescapeValidator())
-            .defaultValue("\"")
-            .build();
-
-    public static final PropertyDescriptor HAS_HEADER = new PropertyDescriptor.Builder()
-            .name("헤더 존재 여부")
-            .description("첫번째 ROW를 헤더로 처리합니다. 이 옵션을 활성화 하면 첫번째 ROW는 출력하지 않습니다.")
-            .required(false)
-            .allowableValues(TRUE, FALSE)
-            .defaultValue(FALSE.getValue())
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-            .build();
-
-    public static final PropertyDescriptor SKIP_HEADER_COUNT = new PropertyDescriptor.Builder()
-            .name("건너뛸 헤더 라인수")
-            .description("보통 첫번째 라인을 헤더 라인으로 사용할 수 있으나 이 값을 지정하면 지정한 라인수 만큼 건너뛰고 헤더 라인으로 인지합니다. 0의 의미는 첫번째 라인을 헤더 라인으로 사용한다는 의미입니다.\n"
-                    + "1로 지정하면 1개 라인을 건너뛰고 두번째 라인을 헤더 라인으로 인지합니다.")
-            .required(false)
-            .defaultValue("0")
-            .dependsOn(HAS_HEADER, "true")
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
-
-    // ---- Charsets ----
-    public static final PropertyDescriptor INPUT_CHARACTER_SET = new PropertyDescriptor.Builder()
-            .name("입력 파일을 문자셋")
-            .description("입력 파일을 디코딩시 사용할 문자셋. 예: CP949 (a.k.a. MS949).")
-            .required(true)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.CHARACTER_SET_VALIDATOR)
-            .defaultValue("CP949") // 기본: CP949
-            .build();
-
-    public static final PropertyDescriptor OUTPUT_CHARACTER_SET = new PropertyDescriptor.Builder()
-            .name("출력 파일의 문자셋")
-            .description("출력 파일의 인코딩 문자셋을 지정합니다. 예: UTF-8.")
-            .required(true)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.CHARACTER_SET_VALIDATOR)
-            .defaultValue(StandardCharsets.UTF_8.name()) // 기본: UTF-8
-            .build();
-
-    // ---- Output Delimiters ----
-    public static final PropertyDescriptor OUTPUT_LINE_DELIMITER = new PropertyDescriptor.Builder()
-            .name("출력 파일의 라인 구분자")
-            .description("출력 파일을 멀티 문자 기반 라인 구분자를 지정합니다. 멀티 캐릭터를 지원합니다. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
-            .required(true)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .defaultValue("\\n")
-            .build();
-
-    public static final PropertyDescriptor OUTPUT_COLUMN_DELIMITER = new PropertyDescriptor.Builder()
-            .name("출력 파일의 컬럼 구분자")
-            .description("출력 파일의 멀티 문자 기반 컬럼 구분자를 지정합니다. 이스케이프 지원: \\n, \\r, \\t, \\\\, \\uXXXX.")
-            .required(true)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .defaultValue(",")
-            .build();
-
-    // ---- ETC ----
-    public static final PropertyDescriptor TEST_MODE = new PropertyDescriptor.Builder()
-		    .name("테스트 모드로 동작")
-		    .description("테스트 모드로 동작하면 실제 파일을 생성하지 않고 검증하는 과정을 진행합니다. 검증 결과는 출력 FlowFile의 attributes를 확인하도록 합니다.")
-		    .required(false)
-		    .allowableValues(TRUE, FALSE)
-		    .defaultValue(FALSE.getValue())
-		    .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-		    .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-		    .build();
-
-    public static final PropertyDescriptor COLUMN_COUNT = new PropertyDescriptor.Builder()
-            .name("컬럼 카운트")
-            .description("컬럼 카운트를 검증합니다. 이 값을 0보다 큰 값을 지정하면 CSV 파싱후 컬럼의 개수를 검증합니다. " +
-                    "지정한 개수와 같지 않은 경우 더이상 처리하지 않습니다.")
-            .required(false)
-            .defaultValue("0")
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
-
-    public static final PropertyDescriptor INCLUDE_COLUMN_SEP_AT_LAST_COLUMN = new PropertyDescriptor.Builder()
-            .name("마지막 컬럼에도 컬럼 구분자 존재 여부")
-            .description("CSV의 경우 마지막 컬럼 뒤에 컬럼 구분자가 없으나 이 옵션을 체크하면 컬럼 구분자가 포함된 것으로 간주하여, " +
-                    "'컬럼 카운트'에서 설정한 값에서 1개를 빼서 검증합니다.")
-            .required(false)
-            .allowableValues(TRUE, FALSE)
-            .defaultValue(FALSE.getValue())
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-            .build();
-
-    public static final PropertyDescriptor SKIP_EMPTY_LINE = new PropertyDescriptor.Builder()
-            .name("빈 라인 건너뛰기")
-            .description("빈 라인은 처리하지 않고 SKIP합니다.")
-            .required(false)
-            .allowableValues(TRUE, FALSE)
-            .defaultValue(FALSE.getValue())
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-            .build();
-
-    // ---- Relationships ----
+    /* ===== Relationships ===== */
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
-            .description("성공시 변환한 FlowFile을 전달")
-            .build();
-
-    public static final Relationship REL_ORIGINAL = new Relationship.Builder()
-            .name("original")
-            .description("원본 입력 FlowFile을 전달")
+            .description("변환 성공")
             .build();
 
     public static final Relationship REL_FAILURE = new Relationship.Builder()
             .name("failure")
-            .description("파싱 실패시 원본 FlowFile을 전달")
+            .description("변환 실패")
+            .build();
+
+    /* ===== Properties ===== */
+    public static final PropertyDescriptor INPUT_CHARSET = new PropertyDescriptor.Builder()
+            .name("Input Charset")
+            .description("입력 파일 문자셋")
+            .defaultValue("CP949")
+            .required(true)
+            .addValidator(StandardValidators.CHARACTER_SET_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor OUTPUT_CHARSET = new PropertyDescriptor.Builder()
+            .name("Output Charset")
+            .description("출력 파일 문자셋")
+            .defaultValue("UTF-8")
+            .required(true)
+            .addValidator(StandardValidators.CHARACTER_SET_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor IN_COL_DELIM = new PropertyDescriptor.Builder()
+            .name("Input Column Delimiter")
+            .description("입력 컬럼 구분자(최소 2문자)")
+            .defaultValue("^|")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor IN_ROW_DELIM = new PropertyDescriptor.Builder()
+            .name("Input Row Delimiter")
+            .description("입력 행 구분자(최소 2문자, 예: \"@@\\n\")")
+            .defaultValue("@@\n")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor OUT_COL_DELIM = new PropertyDescriptor.Builder()
+            .name("Output Column Delimiter")
+            .description("출력 컬럼 구분자")
+            .defaultValue("^|")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor OUT_ROW_DELIM = new PropertyDescriptor.Builder()
+            .name("Output Row Delimiter")
+            .description("출력 행 구분자")
+            .defaultValue("@@\n")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor IN_QUOTE = new PropertyDescriptor.Builder()
+            .name("Input Quote")
+            .description("입력 Quote 문자(정확히 1문자)")
+            .defaultValue("\"")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor OUT_QUOTE = new PropertyDescriptor.Builder()
+            .name("Output Quote")
+            .description("출력 Quote 문자(정확히 1문자)")
+            .defaultValue("\"")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final AllowableValue QM_NEVER = new AllowableValue("NEVER", "NEVER", "절대 Quote 사용 안 함");
+    public static final AllowableValue QM_ALWAYS = new AllowableValue("ALWAYS", "ALWAYS", "항상 Quote");
+    public static final AllowableValue QM_AS_NEEDED = new AllowableValue("AS_NEEDED", "AS_NEEDED", "필요 시에만 Quote");
+
+    public static final PropertyDescriptor OUT_QUOTE_MODE = new PropertyDescriptor.Builder()
+            .name("Output Quote Mode")
+            .description("출력 Quote 전략")
+            .required(true)
+            .defaultValue(QM_NEVER.getValue())
+            .allowableValues(QM_NEVER, QM_ALWAYS, QM_AS_NEEDED)
+            .build();
+
+    public static final PropertyDescriptor PRESERVE_INPUT_QUOTES = new PropertyDescriptor.Builder()
+            .name("Preserve Input Quotes")
+            .description("입력 Quote를 값에 보존할지 여부")
+            .required(true)
+            .defaultValue("true")
+            .allowableValues("true", "false")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor EXPECTED_COLUMNS = new PropertyDescriptor.Builder()
+            .name("Expected Columns")
+            .description("기대한 컬럼 수(>0이면 강제, 다르면 실패)")
+            .required(true)
+            .defaultValue("0")
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor SKIP_LEADING_ROWS = new PropertyDescriptor.Builder()
+            .name("Skip Leading Rows")
+            .description("파싱 시작 전에 스킵할 레코드 수(Row Delimiter 단위)")
+            .required(true)
+            .defaultValue("0")
+            .addValidator(StandardValidators.NON_NEGATIVE_INTEGER_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
+
+    public static final PropertyDescriptor READ_HEADER_AFTER_SKIP = new PropertyDescriptor.Builder()
+            .name("Read Header After Skip Leading Rows")
+            .description("스킵 직후 1행을 헤더로 읽어 출력 첫 행으로 기록")
+            .required(true)
+            .defaultValue("false")
+            .allowableValues("true", "false")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .build();
 
     private List<PropertyDescriptor> descriptors;
+
     private Set<Relationship> relationships;
 
     @Override
-    protected void init(final org.apache.nifi.processor.ProcessorInitializationContext context) {
-        final List<PropertyDescriptor> descriptors = new ArrayList<>();
-        descriptors.add(TEST_MODE);
-        descriptors.add(INPUT_LINE_DELIMITER);
-        descriptors.add(INPUT_COLUMN_DELIMITER);
-        descriptors.add(QUOTE_CHAR);
-        descriptors.add(HAS_HEADER);
-        descriptors.add(SKIP_HEADER_COUNT);
-        descriptors.add(COLUMN_COUNT);
-        descriptors.add(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN);
-        descriptors.add(INPUT_CHARACTER_SET);
-        descriptors.add(OUTPUT_CHARACTER_SET);
-        descriptors.add(OUTPUT_LINE_DELIMITER);
-        descriptors.add(OUTPUT_COLUMN_DELIMITER);
-        descriptors.add(SKIP_EMPTY_LINE);
-        this.descriptors = Collections.unmodifiableList(descriptors);
+    protected void init(final ProcessorInitializationContext context) {
+        final List<PropertyDescriptor> d = new ArrayList<>();
+        d.add(INPUT_CHARSET);
+        d.add(OUTPUT_CHARSET);
+        d.add(IN_COL_DELIM);
+        d.add(IN_ROW_DELIM);
+        d.add(OUT_COL_DELIM);
+        d.add(OUT_ROW_DELIM);
+        d.add(IN_QUOTE);
+        d.add(OUT_QUOTE);
+        d.add(OUT_QUOTE_MODE);
+        d.add(PRESERVE_INPUT_QUOTES);
+        d.add(EXPECTED_COLUMNS);
+        d.add(SKIP_LEADING_ROWS);
+        d.add(READ_HEADER_AFTER_SKIP);
+        descriptors = Collections.unmodifiableList(d);
 
-        final Set<Relationship> relationships = new HashSet<>();
-        relationships.add(REL_SUCCESS);
-        relationships.add(REL_ORIGINAL);
-        relationships.add(REL_FAILURE);
-        this.relationships = Collections.unmodifiableSet(relationships);
-
-		Singleton.init(context.getLogger());
+        final Set<Relationship> r = new HashSet<>();
+        r.add(REL_SUCCESS);
+        r.add(REL_FAILURE);
+        relationships = Collections.unmodifiableSet(r);
     }
 
     @Override
@@ -234,182 +202,324 @@ public class MultilineCsvParser extends AbstractProcessor {
     }
 
     @Override
-    public List<PropertyDescriptor> getSupportedPropertyDescriptors() {
+    protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
         return descriptors;
     }
 
+    /* ===== 내부 출력 Writer ===== */
+    private enum OutputQuoteMode {NEVER, ALWAYS, AS_NEEDED}
+
+    private static final class CsvWriter implements Closeable, Flushable {
+        private final java.io.Writer writer;
+        private final String colDelim, rowDelim;
+        private final char quote;
+        private final OutputQuoteMode mode;
+
+        CsvWriter(java.io.Writer writer, String colDelim, String rowDelim, char quote, OutputQuoteMode mode) {
+            this.writer = new BufferedWriter(writer, 8192);
+            this.colDelim = colDelim;
+            this.rowDelim = rowDelim;
+            this.quote = quote;
+            this.mode = mode;
+        }
+
+        void writeRow(List<String> row) throws IOException {
+            for (int i = 0; i < row.size(); i++) {
+                if (i > 0) writer.write(colDelim);
+                writeField(row.get(i));
+            }
+            writer.write(rowDelim);
+        }
+
+        private void writeField(String value) throws IOException {
+            String v = (value == null) ? "" : value;
+            boolean mustQuote = switch (mode) {
+                case ALWAYS -> true;
+                case NEVER -> false;
+                default -> v.indexOf(quote) >= 0 || v.contains(colDelim) || v.contains(rowDelim);
+            };
+            if (!mustQuote) {
+                writer.write(v);
+                return;
+            }
+            String escaped = v.replace(String.valueOf(quote), String.valueOf(quote) + quote);
+            writer.write(quote);
+            writer.write(escaped);
+            writer.write(quote);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            writer.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            writer.close();
+        }
+    }
+
+    /* ===== 내부 입력 Parser (정규식 미사용) ===== */
+    private static final class CsvParser implements Closeable {
+        private final PushbackReader reader;
+        private final String colDelim, rowDelim;
+        private final char quote;
+        private final boolean preserveInputQuotes;
+        private final StringBuilder field = new StringBuilder();
+        private final List<String> row = new ArrayList<>();
+        private boolean inQuote = false, fieldStarted = false, eof = false;
+
+        CsvParser(Reader r, String colDelim, String rowDelim, char quote, boolean preserveInputQuotes) {
+            this.reader = new PushbackReader(new BufferedReader(r, 8192), 1);
+            this.colDelim = colDelim;
+            this.rowDelim = rowDelim;
+            this.quote = quote;
+            this.preserveInputQuotes = preserveInputQuotes;
+        }
+
+        List<String> readNextRow() throws IOException {
+            if (eof) return null;
+            field.setLength(0);
+            row.clear();
+            inQuote = false;
+            fieldStarted = false;
+
+            int ci;
+            while ((ci = reader.read()) != -1) {
+                char ch = (char) ci;
+
+                if (!inQuote) {
+                    if (!fieldStarted) {
+                        fieldStarted = true;
+                        if (ch == quote) {
+                            inQuote = true;
+                            if (preserveInputQuotes) field.append(ch);
+                            continue;
+                        }
+                    }
+                    field.append(ch);
+
+                    if (endsWith(field, rowDelim)) {
+                        trimTail(field, rowDelim.length());
+                        row.add(field.toString());
+                        field.setLength(0);
+                        fieldStarted = false;
+                        return row;
+                    }
+                    if (endsWith(field, colDelim)) {
+                        trimTail(field, colDelim.length());
+                        row.add(field.toString());
+                        field.setLength(0);
+                        fieldStarted = false;
+                        continue;
+                    }
+                } else {
+                    if (ch == quote) {
+                        int next = reader.read();
+                        if (next == -1) {
+                            if (preserveInputQuotes) field.append(ch);
+                            break;
+                        }
+                        char nch = (char) next;
+                        if (nch == quote) {
+                            if (preserveInputQuotes) field.append(ch).append(nch);
+                            else field.append(ch);
+                        } else {
+                            if (preserveInputQuotes) field.append(ch);
+                            inQuote = false;
+                            reader.unread(nch);
+                        }
+                    } else {
+                        field.append(ch);
+                    }
+                }
+            }
+
+            eof = true;
+            if (field.length() > 0 || !row.isEmpty()) {
+                row.add(field.toString());
+                return row;
+            }
+            return null;
+        }
+
+        @Override
+        public void close() throws IOException {
+            reader.close();
+        }
+
+        private static boolean endsWith(StringBuilder sb, String token) {
+            int n = token.length(), m = sb.length();
+            if (m < n) return false;
+            for (int i = 0; i < n; i++) {
+                if (sb.charAt(m - n + i) != token.charAt(i)) return false;
+            }
+            return true;
+        }
+
+        private static void trimTail(StringBuilder sb, int count) {
+            sb.setLength(sb.length() - count);
+        }
+    }
+
+    /* ===== StreamCallback ===== */
+    private static final class TransformCallback implements StreamCallback {
+        private final Charset inCs, outCs;
+        private final String inCol, inRow, outCol, outRow;
+        private final char inQuote, outQuote;
+        private final OutputQuoteMode quoteMode;
+        private final boolean preserveInputQuotes;
+        private final int expectedColumns, skipLeadingRows;
+        private final boolean readHeaderAfterSkip;
+        private final RowProcessor rowProcessor;
+
+        final AtomicLong rowsSkipped = new AtomicLong(0);
+        final AtomicLong headerWritten = new AtomicLong(0);
+        final AtomicLong rowsIn = new AtomicLong(0);
+        final AtomicLong rowsOut = new AtomicLong(0);
+        volatile String errorMessage = null;
+
+        TransformCallback(Charset inCs, Charset outCs,
+                          String inCol, String inRow, String outCol, String outRow,
+                          char inQuote, char outQuote, OutputQuoteMode quoteMode,
+                          boolean preserveInputQuotes,
+                          int expectedColumns, int skipLeadingRows, boolean readHeaderAfterSkip,
+                          RowProcessor rowProcessor) {
+            this.inCs = inCs;
+            this.outCs = outCs;
+            this.inCol = inCol;
+            this.inRow = inRow;
+            this.outCol = outCol;
+            this.outRow = outRow;
+            this.inQuote = inQuote;
+            this.outQuote = outQuote;
+            this.quoteMode = quoteMode;
+            this.preserveInputQuotes = preserveInputQuotes;
+            this.expectedColumns = expectedColumns;
+            this.skipLeadingRows = skipLeadingRows;
+            this.readHeaderAfterSkip = readHeaderAfterSkip;
+            this.rowProcessor = rowProcessor;
+        }
+
+        @Override
+        public void process(InputStream rawIn, OutputStream rawOut) throws IOException {
+            try (Reader r = new InputStreamReader(rawIn, inCs);
+                 CsvParser parser = new CsvParser(r, inCol, inRow, inQuote, preserveInputQuotes);
+                 Writer w = new OutputStreamWriter(rawOut, outCs);
+                 CsvWriter writer = new CsvWriter(w, outCol, outRow, outQuote, quoteMode)) {
+
+                for (int i = 0; i < skipLeadingRows; i++) {
+                    if (parser.readNextRow() == null) {
+                        if (readHeaderAfterSkip) {
+                            throw new ProcessException("EOF while skipping " + skipLeadingRows + " rows: no header present.");
+                        } else {
+                            writer.flush();
+                            rowsSkipped.set(i);
+                            return;
+                        }
+                    } else {
+                        rowsSkipped.incrementAndGet();
+                    }
+                }
+
+                if (readHeaderAfterSkip) {
+                    List<String> header = parser.readNextRow();
+                    if (header == null)
+                        throw new ProcessException("No header after skipping " + skipLeadingRows + " rows.");
+                    if (expectedColumns > 0 && header.size() != expectedColumns) {
+                        throw new ProcessException("Header column count mismatch (expected=" + expectedColumns + ", actual=" + header.size() + "): " + header);
+                    }
+                    writer.writeRow(header);
+                    headerWritten.set(1);
+                }
+
+                List<String> inRow;
+                int dataIndex = 0;
+                while ((inRow = parser.readNextRow()) != null) {
+                    dataIndex++;
+                    rowsIn.incrementAndGet();
+                    if (expectedColumns > 0 && inRow.size() != expectedColumns) {
+                        throw new ProcessException("Column count mismatch at data row " + dataIndex +
+                                " (expected=" + expectedColumns + ", actual=" + inRow.size() + "): " + inRow);
+                    }
+                    List<String> outRowList = (rowProcessor != null) ? rowProcessor.process(inRow) : inRow;
+                    writer.writeRow(outRowList);
+                    rowsOut.incrementAndGet();
+                }
+                writer.flush();
+            } catch (ProcessException e) {
+                errorMessage = e.getMessage();
+                throw e;
+            }
+        }
+    }
+
     @Override
-    public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
+    public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
         final ComponentLog log = getLogger();
 
-        // Upstream의 FlowFile을 확인합니다. 없으면 더이상 처리할 수 없습니다.
         FlowFile ff = session.get();
         if (ff == null) return;
 
-        // 사용자가 입력한 파라미터 값들
-	    final boolean testMode = context.getProperty(TEST_MODE).evaluateAttributeExpressions(ff).asBoolean();
-        final String lineDelimRaw = context.getProperty(INPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
-        final String colDelimRaw = context.getProperty(INPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
-        final String quoteRaw = context.getProperty(QUOTE_CHAR).evaluateAttributeExpressions(ff).getValue();
-        final boolean hasHeader = context.getProperty(HAS_HEADER).evaluateAttributeExpressions(ff).asBoolean();
-        final int skipHeaderCount = context.getProperty(SKIP_HEADER_COUNT).evaluateAttributeExpressions(ff).asInteger();
-        final int columnCount = context.getProperty(COLUMN_COUNT).evaluateAttributeExpressions(ff).asInteger();
-        final boolean includeColumnSepAtLastColumn = context.getProperty(INCLUDE_COLUMN_SEP_AT_LAST_COLUMN).evaluateAttributeExpressions(ff).asBoolean();
-        final boolean skipEmptyLine = context.getProperty(SKIP_EMPTY_LINE).evaluateAttributeExpressions(ff).asBoolean();
-        final Charset inCharset = Charset.forName(context.getProperty(INPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
-        final Charset outCharset = Charset.forName(context.getProperty(OUTPUT_CHARACTER_SET).evaluateAttributeExpressions(ff).getValue());
-        final String outLineRaw = context.getProperty(OUTPUT_LINE_DELIMITER).evaluateAttributeExpressions(ff).getValue();
-        final String outColRaw = context.getProperty(OUTPUT_COLUMN_DELIMITER).evaluateAttributeExpressions(ff).getValue();
+        Map<String, String> orgAttributes = ff.getAttributes();
 
-        // CSV Parser를 설정합니다.
-        CsvParserSettings settings = new CsvParserSettings();
-        settings.setSkipEmptyLines(skipEmptyLine);          // 빈 레코드도 유지 (필요 시 조절)
-        settings.setHeaderExtractionEnabled(hasHeader);     // 헤더가 없다고 가정 (있다면 true)
-        settings.setNullValue("");                          // null 대신 빈문자열
-        settings.setEmptyValue("");                         // 빈 필드 값 보존
-        if (hasHeader && skipHeaderCount > 0) {             // 헤더가 있고 시작 라인을 건너뛰기 시도
-            settings.setNumberOfRowsToSkip(skipHeaderCount);
+        final Charset inCs = Charset.forName(context.getProperty(INPUT_CHARSET).getValue());
+        final Charset outCs = Charset.forName(context.getProperty(OUTPUT_CHARSET).getValue());
+        final String inCol = context.getProperty(IN_COL_DELIM).getValue();
+        final String inRow = context.getProperty(IN_ROW_DELIM).getValue();
+        final String outCol = context.getProperty(OUT_COL_DELIM).getValue();
+        final String outRow = context.getProperty(OUT_ROW_DELIM).getValue();
+
+        final char inQuote = context.getProperty(IN_QUOTE).getValue().charAt(0);
+        final char outQuote = context.getProperty(OUT_QUOTE).getValue().charAt(0);
+        final OutputQuoteMode outMode = OutputQuoteMode.valueOf(context.getProperty(OUT_QUOTE_MODE).getValue());
+        final boolean preserve = context.getProperty(PRESERVE_INPUT_QUOTES).asBoolean();
+
+        final int expectedCols = context.getProperty(EXPECTED_COLUMNS).asInteger();
+        final int skipRows = context.getProperty(SKIP_LEADING_ROWS).asInteger();
+        final boolean readHeader = context.getProperty(READ_HEADER_AFTER_SKIP).asBoolean();
+
+        // 구분자 길이 방어
+        if (inCol.length() < 2 || inRow.length() < 2 || outCol.length() < 2 || outRow.length() < 2) {
+            ff = session.putAttribute(ff, "csv.error", "Delimiters must be length >= 2");
+            session.transfer(ff, REL_FAILURE);
+            return;
         }
 
-        // 입력한 값들에 대한 escape를 처리합니다.
-        final String lineDelim = unescape(lineDelimRaw);
-        final String colDelim = unescape(colDelimRaw);
-        final Character quoteChar = (quoteRaw == null || quoteRaw.isEmpty()) ? null : unescape(quoteRaw).charAt(0);
-        final String outLineDelim = unescape(outLineRaw);
-        final String outColDelim = unescape(outColRaw);
-
-        final AtomicLong rowCounter = new AtomicLong(0);
-        final AtomicLong errorCounter = new AtomicLong(0);
-
-        // Downstream으로 전달할 FlowFile을 생성합니다.
-        FlowFile out = session.create(ff);
-
-        // CSV Parser의 Quote를 설정합니다.
-        CsvFormat format = settings.getFormat();
-        if (quoteChar != null) {
-            format.setQuote(quoteChar);                     // 기본 CSV 따옴표
-            format.setQuoteEscape('"');                     // CSV 이스케이프 규칙 ("")
-        }
-
-        // CSV Parser가 기본으로 2개의 Delmiter를 지원하나 사용자가 3개 이상을 지정하는 경우 처리할 수 없으므로
-        // 우선적으로 CSV Parser가 동작하도록 특수 문자로 구성한 라인 및 컬럼 구분자를 설정합니다.
-        format.setLineSeparator(String.valueOf(RECORD_SEP));        // 레코드 구분자(단일문자)
-        format.setDelimiter(COLUMN_SEP);                            // 컬럼 구분자(단일문자)
-
-        try (final InputStream in = session.read(ff)) {
-            // Upstream에서 전달받은 FlowFile을 파싱해서 Downstream으로 전달하기 위한 Row Processor를 생성하고 처리합니다.
-            out = session.write(out, outStream -> {
-                try (OutputStreamWriter writer = new OutputStreamWriter(outStream, outCharset)) {
-                    try (Reader base = new BufferedReader(new InputStreamReader(in, inCharset), 8192);
-                         Reader reader = new MultiDelimiterTranslatingReader(base, lineDelim, RECORD_SEP, colDelim, COLUMN_SEP)) {
-
-                        // CSV Parser를 실행합니다. 실제 처리는 RowProcessor를 사용합니다.
-                        // CSV Parser가 파싱한 컬럼을 특수하게 처리하고자 하는 경우 Row Processor를 구현하여 적용하도록 합니다.
-                        NewlineToSpaceConverter rowProcessor = new NewlineToSpaceConverter(colDelim, outLineDelim, outColDelim,
-                                writer, rowCounter, columnCount, includeColumnSepAtLastColumn, log, errorCounter, testMode);
-                        settings.setProcessor(rowProcessor);
-
-                        CsvParser parser = new CsvParser(settings);
-                        parser.parse(reader);
-                    }
-                } catch (IOException e) {
-                    String msg = String.format("FlowFile을 읽어서 문자열을 Replace 처리하여 저장할 수 없습니다. 원인: %s", e.getMessage());
-                    log.warn(msg, e);
-                    throw new ProcessException(msg, e);
+        // RowProcessor 인스턴스 준비(옵션)
+        RowProcessor rp = new RowProcessor() {
+            @Override
+            public List<String> process(List<String> rows) {
+                List<String> newList = new ArrayList<>(rows.size());
+                for (String row : rows) {
+                    newList.add(row.replace("\r\n", " ").replace("\n", " "));
                 }
-            });
+                return rows;
+            }
+        };
 
-            final Map<String, String> attrs = new HashMap<>();
-            attrs.put("parsecsv.record.count", String.valueOf(rowCounter.get()));
-            attrs.put("parsecsv.record.error.count", String.valueOf(errorCounter));
-            attrs.put("parsecsv.header.present", String.valueOf(hasHeader));
-            attrs.put("parsecsv.input.line.delimiter", printable(lineDelim));
-            attrs.put("parsecsv.input.column.delimiter", printable(colDelim));
-            attrs.put("parsecsv.output.line.delimiter", printable(outLineDelim));
-            attrs.put("parsecsv.output.column.delimiter", printable(outColDelim));
-            attrs.put("parsecsv.output.encoding", outCharset.name());
+        final TransformCallback cb = new TransformCallback(
+                inCs, outCs, inCol, inRow, outCol, outRow,
+                inQuote, outQuote, outMode, preserve,
+                expectedCols, skipRows, readHeader, rp
+        );
 
-            log.info("FlowFile을 downstream으로 전달합니다. FlowFile의 attributes: {}", attrs);
+        try {
+            final Map<String, String> attrs = new HashMap<>(orgAttributes); // Upstream의 FlowFile Attributes 전체를 그대로 전달.
+            attrs.put("parsecsv.input.charset", inCs.name());
+            attrs.put("parsecsv.rows.skipped", String.valueOf(cb.rowsSkipped.get()));
+            attrs.put("parsecsv.rows.header", String.valueOf(cb.headerWritten.get()));
+            attrs.put("parsecsv.rows.data.in", String.valueOf(cb.rowsIn.get()));
+            attrs.put("parsecsv.rows.data.out", String.valueOf(cb.rowsOut.get()));
 
-            out = session.putAllAttributes(out, attrs);
-            session.transfer(out, REL_SUCCESS);
-            session.transfer(ff, REL_ORIGINAL);
-        } catch (Exception e) {
-            log.error("CSV 파일을 파싱할 수 없습니다. 원인: {}", e.getMessage(), e);
-            session.remove(out);
-
-            ff = session.putAttribute(ff, "parsecsv.error", String.valueOf(e));
+            ff = session.write(ff, cb);
+            session.putAllAttributes(ff, attrs);
+            session.transfer(ff, REL_SUCCESS);
+        } catch (ProcessException pe) {
+            String err = (cb.errorMessage != null) ? cb.errorMessage : pe.getMessage();
+            log.error("CSV parsing failed: {}", new Object[]{err}, pe);
+            ff = session.putAttribute(ff, "parsecsv.error", err);
             session.transfer(ff, REL_FAILURE);
         }
     }
-
-    // ---- Helpers ----
-    private static String unescape(String s) {
-        StringBuilder sb = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); ) {
-            char c = s.charAt(i++);
-            if (c == '\\' && i < s.length()) {
-                char n = s.charAt(i++);
-                switch (n) {
-                    case 'n':
-                        sb.append('\n');
-                        break;
-                    case 'r':
-                        sb.append('\r');
-                        break;
-                    case 't':
-                        sb.append('\t');
-                        break;
-                    case '\\':
-                        sb.append('\\');
-                        break;
-                    case 'u':
-                        if (i + 3 < s.length()) {
-                            String hex = s.substring(i, i + 4);
-                            sb.append((char) Integer.parseInt(hex, 16));
-                            i += 4;
-                        } else {
-                            sb.append("\\u");
-                        }
-                        break;
-                    default:
-                        sb.append(n);
-                }
-            } else {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Downstream으로 전달할 FlowFile의 Attribute에 들어가는 문자열을 출력 가능한 형태로 변환합니다.
-     *
-     * @param value 문자열
-     * @return 변환한 문자열
-     */
-    private static String printable(String value) {
-        return value.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
-    }
-
-    /**
-     * NiFi Processor 설정 화면에서 사용자가 입력한 값이 최소 1개의 문자를 충족하는지 검증하는 Validator.
-     */
-    private static class SingleCharAfterUnescapeValidator implements Validator {
-        @Override
-        public ValidationResult validate(String subject, String input, ValidationContext context) {
-            if (input == null || input.isEmpty()) {
-                return new ValidationResult.Builder().valid(true).subject(subject).input(input).explanation("empty allowed").build();
-            }
-            String u = unescape(input);
-            boolean ok = u.length() == 1;
-            return new ValidationResult.Builder()
-                    .valid(ok)
-                    .subject(subject)
-                    .input(input)
-                    .explanation(ok ? "OK" : "Unescape 후에 반드시 1개의 문자이어야 합니다.")
-                    .build();
-        }
-    }
-
 }
